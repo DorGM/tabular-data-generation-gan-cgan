@@ -12,7 +12,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from sdv.metadata import Metadata
+from sdv.metadata import SingleTableMetadata
 from sdv.single_table import CTGANSynthesizer, GaussianCopulaSynthesizer, TVAESynthesizer
 
 from evaluator import _design_matrix, final_detection, schema_from_frame, utility_report
@@ -30,7 +30,8 @@ def run(name, seed, frame, schema):
     fit, select, test = split_frames(frame, seed)
     table = fit.copy()
     table["income"] = table["income"].astype(str)
-    metadata = Metadata.detect_from_dataframe(table)
+    metadata = SingleTableMetadata()
+    metadata.detect_from_dataframe(table)
     for column in CATEGORICAL + ["income"]:
         metadata.update_column(column, sdtype="categorical")
     for column in NUMERIC:

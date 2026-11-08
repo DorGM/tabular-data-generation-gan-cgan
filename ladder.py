@@ -44,6 +44,7 @@ from main import INCOME_MAP, load_adult, prepare_experiment
 
 ROOT = Path(__file__).resolve().parent
 OUT_DIR = ROOT / "results" / "ladder"
+MODEL_DIR = ROOT / "models" / "ladder"
 NUMERIC = ["age", "fnlwgt", "education-num", "capital-gain", "capital-loss", "hours-per-week"]
 CATEGORICAL = ["workclass", "marital-status", "occupation", "relationship", "race", "sex", "native-country"]
 INTEGER = {"age", "education-num", "hours-per-week", "fnlwgt", "capital-gain", "capital-loss"}
@@ -463,6 +464,14 @@ def train_rung(rung, config, seed, fit, select, test, schema, log):
         _design_matrix(test.drop(columns=["income"]), schema), test["income"].to_numpy(),
     )
     test_fidelity = score(test.drop(columns=["income"]), test_synth, schema)
+    MODEL_DIR.mkdir(parents=True, exist_ok=True)
+    torch.save({
+        "rung": rung, "seed": seed, "config": config, "selected_epoch": best["row"]["epoch"],
+        "generator_state": generator.state_dict(), "transformer": transformer,
+        "conditioner": {"dim": conditioner.dim, "tbs": conditioner.tbs, "offsets": conditioner.offsets,
+                        "income": conditioner.income, "encoded": conditioner.encoded,
+                        "base_rate": conditioner.base_rate},
+    }, MODEL_DIR / f"{rung}_seed{seed}.pt")
     return {
         "rung": rung, "seed": seed, "config": {k: (list(v) if isinstance(v, tuple) else v) for k, v in config.items()},
         "selected": best["row"], "history": history,
@@ -471,6 +480,23 @@ def train_rung(rung, config, seed, fit, select, test, schema, log):
         "test_ks": test_fidelity["ks"], "test_tv": test_fidelity["tv"], "test_coverage": test_fidelity["coverage"],
         "test_violations": test_fidelity["violations"],
     }
+
+
+def load_generator(path):
+    """Rebuild a saved generator. Returns a function: income labels -> synthetic frame."""
+    saved = torch.load(path, map_location="cpu", weights_only=False)
+    conditioner = Conditioner.__new__(Conditioner)
+    conditioner.__dict__.update(saved["conditioner"])
+    conditioner.config = saved["config"]
+    generator = Generator(saved["transformer"], saved["config"], conditioner.dim)
+    generator.load_state_dict(saved["generator_state"])
+
+    def sample(labels, seed=0):
+        frame = generate(generator, saved["transformer"], conditioner, np.asarray(labels, dtype=int), seed)
+        frame["income"] = np.asarray(labels, dtype=int)
+        return frame
+
+    return sample
 
 
 def main():
@@ -502,4 +528,7 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    # Run through the importable module so saved objects unpickle as ladder.Transformer.
+    import ladder
+
+    ladder.main()
