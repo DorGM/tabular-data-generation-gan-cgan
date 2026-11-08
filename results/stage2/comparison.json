@@ -1,0 +1,258 @@
+{
+  "rule": "violation fraction, then mean of KS and TV, then protocol A AUC, then earlier epoch",
+  "uses_final_test": 0,
+  "seeds": {
+    "42": {
+      "comparison_checkpoint": {
+        "seed": 42,
+        "epoch_number": 70,
+        "temperature": 0.7100840336134453,
+        "d_loss": 0.5559459923783694,
+        "g_loss": 1.889628086719045,
+        "checkpoint": "type_aware_cgan_seed42_epoch0070.pt",
+        "config_fingerprint": "880da0b32736fc7faf42c58712864b43465ddc61b49c7a361d505f3b910c6079",
+        "hard_validity": {
+          "n_rows": 5210,
+          "missing_columns": [],
+          "violation_counts": {
+            "nonfinite_rows": 0,
+            "outside_reference_domain_rows": 0,
+            "noninteger_discrete_rows": 0,
+            "negative_capital_rows": 0,
+            "invalid_category_rows": 0
+          },
+          "invalid_category_counts": {
+            "workclass": 0,
+            "marital-status": 0,
+            "occupation": 0,
+            "relationship": 0,
+            "race": 0,
+            "sex": 0,
+            "native-country": 0
+          },
+          "violation_total": 0,
+          "row_violation_fraction": 0.0,
+          "valid": 1
+        },
+        "numeric_ks_mean": 0.20188739603326936,
+        "categorical_tv_mean": 0.3102550041129695,
+        "category_coverage_mean": 0.37817460317460316,
+        "rare_category_recall": 0.0,
+        "correlation_mae": 0.12519235867605494,
+        "synthetic_duplicate_rate": 0.0,
+        "selection_detection_auc": 0.9958660623658272,
+        "selection_detection_oriented_auc": 0.9958660623658272,
+        "uses_final_test": 0
+      },
+      "epoch_120": {
+        "seed": 42,
+        "epoch_number": 120,
+        "temperature": 0.5,
+        "d_loss": 0.5655918673503618,
+        "g_loss": 1.8083862651345188,
+        "checkpoint": "type_aware_cgan_seed42_epoch0120.pt",
+        "config_fingerprint": "880da0b32736fc7faf42c58712864b43465ddc61b49c7a361d505f3b910c6079",
+        "hard_validity": {
+          "n_rows": 5210,
+          "missing_columns": [],
+          "violation_counts": {
+            "nonfinite_rows": 0,
+            "outside_reference_domain_rows": 0,
+            "noninteger_discrete_rows": 0,
+            "negative_capital_rows": 0,
+            "invalid_category_rows": 0
+          },
+          "invalid_category_counts": {
+            "workclass": 0,
+            "marital-status": 0,
+            "occupation": 0,
+            "relationship": 0,
+            "race": 0,
+            "sex": 0,
+            "native-country": 0
+          },
+          "violation_total": 0,
+          "row_violation_fraction": 0.0,
+          "valid": 1
+        },
+        "numeric_ks_mean": 0.37204094689699296,
+        "categorical_tv_mean": 0.3112421168083356,
+        "category_coverage_mean": 0.3908730158730158,
+        "rare_category_recall": 0.023809523809523808,
+        "correlation_mae": 0.09834374243455321,
+        "synthetic_duplicate_rate": 0.0,
+        "selection_detection_auc": 0.9999488654917813,
+        "selection_detection_oriented_auc": 0.9999488654917813,
+        "uses_final_test": 0
+      }
+    },
+    "68": {
+      "comparison_checkpoint": {
+        "seed": 68,
+        "epoch_number": 120,
+        "temperature": 0.5,
+        "d_loss": 0.44259539004301,
+        "g_loss": 2.4406516851823024,
+        "checkpoint": "type_aware_cgan_seed68_epoch0120.pt",
+        "config_fingerprint": "880da0b32736fc7faf42c58712864b43465ddc61b49c7a361d505f3b910c6079",
+        "hard_validity": {
+          "n_rows": 5210,
+          "missing_columns": [],
+          "violation_counts": {
+            "nonfinite_rows": 0,
+            "outside_reference_domain_rows": 0,
+            "noninteger_discrete_rows": 0,
+            "negative_capital_rows": 0,
+            "invalid_category_rows": 0
+          },
+          "invalid_category_counts": {
+            "workclass": 0,
+            "marital-status": 0,
+            "occupation": 0,
+            "relationship": 0,
+            "race": 0,
+            "sex": 0,
+            "native-country": 0
+          },
+          "violation_total": 0,
+          "row_violation_fraction": 0.0,
+          "valid": 1
+        },
+        "numeric_ks_mean": 0.24657709532949457,
+        "categorical_tv_mean": 0.2974773786673978,
+        "category_coverage_mean": 0.4954997383568812,
+        "rare_category_recall": 0.046511627906976744,
+        "correlation_mae": 0.09226209676222975,
+        "synthetic_duplicate_rate": 0.0,
+        "selection_detection_auc": 0.9963941330004138,
+        "selection_detection_oriented_auc": 0.9963941330004138,
+        "uses_final_test": 0
+      },
+      "epoch_120": {
+        "seed": 68,
+        "epoch_number": 120,
+        "temperature": 0.5,
+        "d_loss": 0.44259539004301,
+        "g_loss": 2.4406516851823024,
+        "checkpoint": "type_aware_cgan_seed68_epoch0120.pt",
+        "config_fingerprint": "880da0b32736fc7faf42c58712864b43465ddc61b49c7a361d505f3b910c6079",
+        "hard_validity": {
+          "n_rows": 5210,
+          "missing_columns": [],
+          "violation_counts": {
+            "nonfinite_rows": 0,
+            "outside_reference_domain_rows": 0,
+            "noninteger_discrete_rows": 0,
+            "negative_capital_rows": 0,
+            "invalid_category_rows": 0
+          },
+          "invalid_category_counts": {
+            "workclass": 0,
+            "marital-status": 0,
+            "occupation": 0,
+            "relationship": 0,
+            "race": 0,
+            "sex": 0,
+            "native-country": 0
+          },
+          "violation_total": 0,
+          "row_violation_fraction": 0.0,
+          "valid": 1
+        },
+        "numeric_ks_mean": 0.24657709532949457,
+        "categorical_tv_mean": 0.2974773786673978,
+        "category_coverage_mean": 0.4954997383568812,
+        "rare_category_recall": 0.046511627906976744,
+        "correlation_mae": 0.09226209676222975,
+        "synthetic_duplicate_rate": 0.0,
+        "selection_detection_auc": 0.9963941330004138,
+        "selection_detection_oriented_auc": 0.9963941330004138,
+        "uses_final_test": 0
+      }
+    },
+    "124": {
+      "comparison_checkpoint": {
+        "seed": 124,
+        "epoch_number": 110,
+        "temperature": 0.5420168067226891,
+        "d_loss": 0.41976975306777137,
+        "g_loss": 2.255944487507358,
+        "checkpoint": "type_aware_cgan_seed124_epoch0110.pt",
+        "config_fingerprint": "880da0b32736fc7faf42c58712864b43465ddc61b49c7a361d505f3b910c6079",
+        "hard_validity": {
+          "n_rows": 5210,
+          "missing_columns": [],
+          "violation_counts": {
+            "nonfinite_rows": 0,
+            "outside_reference_domain_rows": 0,
+            "noninteger_discrete_rows": 0,
+            "negative_capital_rows": 0,
+            "invalid_category_rows": 0
+          },
+          "invalid_category_counts": {
+            "workclass": 0,
+            "marital-status": 0,
+            "occupation": 0,
+            "relationship": 0,
+            "race": 0,
+            "sex": 0,
+            "native-country": 0
+          },
+          "violation_total": 0,
+          "row_violation_fraction": 0.0,
+          "valid": 1
+        },
+        "numeric_ks_mean": 0.2428662827895073,
+        "categorical_tv_mean": 0.17754318618042225,
+        "category_coverage_mean": 0.6042517006802722,
+        "rare_category_recall": 0.023255813953488372,
+        "correlation_mae": 0.11554571539647578,
+        "synthetic_duplicate_rate": 0.0,
+        "selection_detection_auc": 0.9918676974911966,
+        "selection_detection_oriented_auc": 0.9918676974911966,
+        "uses_final_test": 0
+      },
+      "epoch_120": {
+        "seed": 124,
+        "epoch_number": 120,
+        "temperature": 0.5,
+        "d_loss": 0.4271291416664065,
+        "g_loss": 2.2222997893585017,
+        "checkpoint": "type_aware_cgan_seed124_epoch0120.pt",
+        "config_fingerprint": "880da0b32736fc7faf42c58712864b43465ddc61b49c7a361d505f3b910c6079",
+        "hard_validity": {
+          "n_rows": 5210,
+          "missing_columns": [],
+          "violation_counts": {
+            "nonfinite_rows": 0,
+            "outside_reference_domain_rows": 0,
+            "noninteger_discrete_rows": 0,
+            "negative_capital_rows": 0,
+            "invalid_category_rows": 0
+          },
+          "invalid_category_counts": {
+            "workclass": 0,
+            "marital-status": 0,
+            "occupation": 0,
+            "relationship": 0,
+            "race": 0,
+            "sex": 0,
+            "native-country": 0
+          },
+          "violation_total": 0,
+          "row_violation_fraction": 0.0,
+          "valid": 1
+        },
+        "numeric_ks_mean": 0.34254638515674984,
+        "categorical_tv_mean": 0.17348505621058402,
+        "category_coverage_mean": 0.5506802721088435,
+        "rare_category_recall": 0.0,
+        "correlation_mae": 0.08349215453902281,
+        "synthetic_duplicate_rate": 0.0,
+        "selection_detection_auc": 0.9936493740664636,
+        "selection_detection_oriented_auc": 0.9936493740664636,
+        "uses_final_test": 0
+      }
+    }
+  }
+}

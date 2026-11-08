@@ -1,0 +1,2564 @@
+[
+  {
+    "file": "cgan_linear_seed124.pt",
+    "kind": "cgan",
+    "seed": 124,
+    "output_activation": "linear",
+    "lr": 0.001,
+    "acceptable": 0,
+    "weights": "last_epoch_not_a_selected_model",
+    "selected_epoch_number": null,
+    "sample_seed": 42,
+    "split": "selection",
+    "n_selection": 5210,
+    "uses_final_test": 0,
+    "conditioning": "selection row labels",
+    "real_selection_violation_total": 0,
+    "synthetic_hard_validity": {
+      "n_rows": 5210,
+      "missing_columns": [],
+      "violation_counts": {
+        "nonfinite_rows": 0,
+        "outside_reference_domain_rows": 2480,
+        "noninteger_discrete_rows": 5210,
+        "negative_capital_rows": 2399,
+        "invalid_category_rows": 0
+      },
+      "invalid_category_counts": {
+        "workclass": 0,
+        "marital-status": 0,
+        "occupation": 0,
+        "relationship": 0,
+        "race": 0,
+        "sex": 0,
+        "native-country": 0
+      },
+      "violation_total": 5210,
+      "row_violation_fraction": 1.0,
+      "valid": 0
+    },
+    "fidelity_summary": {
+      "numeric_ks_mean": 0.37031349968010235,
+      "numeric_wasserstein_over_std_mean": 0.2237595348959126,
+      "categorical_tv_mean": 0.29437894159583217,
+      "category_coverage_mean": 0.6459183673469387,
+      "rare_category_recall": 0.20930232558139536,
+      "rare_category_count": 43,
+      "correlation_mae": 0.060677925277352336,
+      "pairwise_categorical_tv_mean": 0.4608171099533863,
+      "synthetic_unique_fraction": 1.0,
+      "synthetic_duplicate_rate": 0.0,
+      "nearest_neighbor": {
+        "available": 1,
+        "subsample": 400,
+        "seed": 0,
+        "median_real_to_real": 2.5559564134856334,
+        "median_synthetic_to_real": 1.355204711515305,
+        "ratio_synthetic_over_real": 0.5302143277424564,
+        "does_not_guarantee_privacy": 1
+      },
+      "numeric": {
+        "age": {
+          "ks": 0.1967370441458733,
+          "wasserstein": 3.0760892680252376,
+          "wasserstein_over_std": 0.22620746475997722,
+          "mean_abs_diff_over_std": 0.19310703449587946,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 0.49822176953728103,
+          "upper_quantile_abs_diff_over_std": 0.03663791052709246
+        },
+        "fnlwgt": {
+          "ks": 0.06218809980806139,
+          "wasserstein": 15992.170662414597,
+          "wasserstein_over_std": 0.1539113821152586,
+          "mean_abs_diff_over_std": 0.05143099361965717,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 62188.82174384885,
+          "upper_quantile_abs_diff_over_std": 0.5985158430813075
+        },
+        "education-num": {
+          "ks": 0.2737044145873321,
+          "wasserstein": 0.7150589911664933,
+          "wasserstein_over_std": 0.2821944479017654,
+          "mean_abs_diff_over_std": 0.24412897522850213,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 0.10126990006386372,
+          "upper_quantile_abs_diff_over_std": 0.039965658624848986
+        },
+        "capital-gain": {
+          "ks": 0.7278310940499041,
+          "wasserstein": 820.6886451719188,
+          "wasserstein_over_std": 0.11406210055780998,
+          "mean_abs_diff_over_std": 0.070833435543473,
+          "zero_rate_real": 0.9147792706333974,
+          "zero_rate_synthetic": 0.0,
+          "zero_rate_abs_diff": 0.9147792706333974,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 2209.6307280971178,
+          "upper_quantile_abs_diff_over_std": 0.30710199755602047
+        },
+        "capital-loss": {
+          "ks": 0.5587332053742802,
+          "wasserstein": 89.04735099248738,
+          "wasserstein_over_std": 0.2217734467939932,
+          "mean_abs_diff_over_std": 0.21283555895707615,
+          "zero_rate_real": 0.9543186180422265,
+          "zero_rate_synthetic": 0.0019193857965451055,
+          "zero_rate_abs_diff": 0.9523992322456813,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 1929.775896543836,
+          "upper_quantile_abs_diff_over_std": 4.806128956633438
+        },
+        "hours-per-week": {
+          "ks": 0.40268714011516316,
+          "wasserstein": 4.266482227094219,
+          "wasserstein_over_std": 0.3444083672466714,
+          "mean_abs_diff_over_std": 0.3260081085444463,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 5.4482616236804375,
+          "upper_quantile_abs_diff_over_std": 0.4398065643466796
+        }
+      },
+      "categorical": {
+        "workclass": {
+          "total_variation": 0.2558541266794625,
+          "coverage": 0.3333333333333333,
+          "rare_category_count": 2,
+          "rare_category_recall": 0.0,
+          "synthetic_missing_rate": 0.0
+        },
+        "marital-status": {
+          "total_variation": 0.3529750479846449,
+          "coverage": 0.5714285714285714,
+          "rare_category_count": 1,
+          "rare_category_recall": 0.0,
+          "synthetic_missing_rate": 0.0
+        },
+        "occupation": {
+          "total_variation": 0.5984644913627639,
+          "coverage": 0.5333333333333333,
+          "rare_category_count": 2,
+          "rare_category_recall": 0.0,
+          "synthetic_missing_rate": 0.0
+        },
+        "relationship": {
+          "total_variation": 0.40345489443378113,
+          "coverage": 0.8333333333333334,
+          "rare_category_count": 0,
+          "rare_category_recall": null,
+          "synthetic_missing_rate": 0.0
+        },
+        "race": {
+          "total_variation": 0.12092130518234166,
+          "coverage": 1.0,
+          "rare_category_count": 1,
+          "rare_category_recall": 1.0,
+          "synthetic_missing_rate": 0.0
+        },
+        "sex": {
+          "total_variation": 0.23857965451055663,
+          "coverage": 1.0,
+          "rare_category_count": 0,
+          "rare_category_recall": null,
+          "synthetic_missing_rate": 0.0
+        },
+        "native-country": {
+          "total_variation": 0.09040307101727448,
+          "coverage": 0.25,
+          "rare_category_count": 37,
+          "rare_category_recall": 0.21621621621621623,
+          "synthetic_missing_rate": 0.0
+        }
+      },
+      "label_conditional": {
+        "0.0": {
+          "available": 1,
+          "n_real": 3955,
+          "n_synthetic": 3955,
+          "numeric_mean_abs_diff_over_std": {
+            "age": 0.252728348568912,
+            "fnlwgt": 0.08553547045772102,
+            "education-num": 0.24799837586929147,
+            "capital-gain": 0.00020480919922927747,
+            "capital-loss": 0.16736839801514597,
+            "hours-per-week": 0.3336192001457595
+          },
+          "categorical_tv_mean": 0.3323460357594365
+        },
+        "1.0": {
+          "available": 1,
+          "n_real": 1255,
+          "n_synthetic": 1255,
+          "numeric_mean_abs_diff_over_std": {
+            "age": 0.02383652395091039,
+            "fnlwgt": 0.050770058354546746,
+            "education-num": 0.282680611754557,
+            "capital-gain": 0.14945654480814344,
+            "capital-loss": 0.3236435192952094,
+            "hours-per-week": 0.34637242953151237
+          },
+          "categorical_tv_mean": 0.20830961866818445
+        }
+      }
+    },
+    "privacy": {
+      "n_synthetic": 5210,
+      "n_reference": 20825,
+      "exact_duplicate_fraction_vs_reference": 0.0,
+      "exact_duplicate_count": 0,
+      "rounding": "integer fields, fnlwgt, and capital rounded to integers; other numerics to 4 decimals",
+      "does_not_guarantee_privacy": 1
+    },
+    "selection_detection": {
+      "protocol": "A_selection_cv",
+      "uses_final_test": 0,
+      "n_real": 5210,
+      "n_synthetic": 5210,
+      "fold_auc": [
+        0.9999999999999999,
+        1.0,
+        0.9999994105532194,
+        1.0
+      ],
+      "mean_auc": 0.9999998526383048,
+      "oriented_auc": 0.9999998526383048,
+      "n_estimators": 80,
+      "max_depth": 16,
+      "random_state": 42
+    }
+  },
+  {
+    "file": "cgan_linear_seed42.pt",
+    "kind": "cgan",
+    "seed": 42,
+    "output_activation": "linear",
+    "lr": 0.001,
+    "acceptable": 0,
+    "weights": "last_epoch_not_a_selected_model",
+    "selected_epoch_number": null,
+    "sample_seed": 42,
+    "split": "selection",
+    "n_selection": 5210,
+    "uses_final_test": 0,
+    "conditioning": "selection row labels",
+    "real_selection_violation_total": 0,
+    "synthetic_hard_validity": {
+      "n_rows": 5210,
+      "missing_columns": [],
+      "violation_counts": {
+        "nonfinite_rows": 0,
+        "outside_reference_domain_rows": 4169,
+        "noninteger_discrete_rows": 5210,
+        "negative_capital_rows": 4052,
+        "invalid_category_rows": 0
+      },
+      "invalid_category_counts": {
+        "workclass": 0,
+        "marital-status": 0,
+        "occupation": 0,
+        "relationship": 0,
+        "race": 0,
+        "sex": 0,
+        "native-country": 0
+      },
+      "violation_total": 5210,
+      "row_violation_fraction": 1.0,
+      "valid": 0
+    },
+    "fidelity_summary": {
+      "numeric_ks_mean": 0.31154830454254634,
+      "numeric_wasserstein_over_std_mean": 0.1530173906128447,
+      "categorical_tv_mean": 0.2462297778996436,
+      "category_coverage_mean": 0.520578231292517,
+      "rare_category_recall": 0.19047619047619047,
+      "rare_category_count": 42,
+      "correlation_mae": 0.06602145367457651,
+      "pairwise_categorical_tv_mean": 0.41079426012247505,
+      "synthetic_unique_fraction": 1.0,
+      "synthetic_duplicate_rate": 0.0,
+      "nearest_neighbor": {
+        "available": 1,
+        "subsample": 400,
+        "seed": 0,
+        "median_real_to_real": 3.2487469210224926,
+        "median_synthetic_to_real": 1.2895663173595402,
+        "ratio_synthetic_over_real": 0.39694268242774333,
+        "does_not_guarantee_privacy": 1
+      },
+      "numeric": {
+        "age": {
+          "ks": 0.07120921305182337,
+          "wasserstein": 1.557390464913967,
+          "wasserstein_over_std": 0.11247084185345378,
+          "mean_abs_diff_over_std": 0.08612547158562249,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 1.4160071249095978,
+          "upper_quantile_abs_diff_over_std": 0.10226049086403577
+        },
+        "fnlwgt": {
+          "ks": 0.05700575815738962,
+          "wasserstein": 10653.520680772104,
+          "wasserstein_over_std": 0.09939791352595792,
+          "mean_abs_diff_over_std": 0.060089041938127,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 36631.09201815486,
+          "upper_quantile_abs_diff_over_std": 0.3417700332016516
+        },
+        "education-num": {
+          "ks": 0.21746641074856046,
+          "wasserstein": 0.5479471547332047,
+          "wasserstein_over_std": 0.21155698214777,
+          "mean_abs_diff_over_std": 0.002099936700067263,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 0.6632832752748818,
+          "upper_quantile_abs_diff_over_std": 0.2560871186466247
+        },
+        "capital-gain": {
+          "ks": 0.5428023032629559,
+          "wasserstein": 592.9980978384455,
+          "wasserstein_over_std": 0.08387466554125476,
+          "mean_abs_diff_over_std": 0.039046851717987476,
+          "zero_rate_real": 0.9134357005758157,
+          "zero_rate_synthetic": 0.00019193857965451057,
+          "zero_rate_abs_diff": 0.9132437619961612,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 2977.4603273986413,
+          "upper_quantile_abs_diff_over_std": 0.4211370829573092
+        },
+        "capital-loss": {
+          "ks": 0.6491362763915547,
+          "wasserstein": 90.2694752952781,
+          "wasserstein_over_std": 0.22456995796020832,
+          "mean_abs_diff_over_std": 0.20114088934551477,
+          "zero_rate_real": 0.9525911708253358,
+          "zero_rate_synthetic": 0.0011516314779270633,
+          "zero_rate_abs_diff": 0.9514395393474088,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 1895.7321778337237,
+          "upper_quantile_abs_diff_over_std": 4.716151213766971
+        },
+        "hours-per-week": {
+          "ks": 0.3316698656429942,
+          "wasserstein": 2.2960925202528637,
+          "wasserstein_over_std": 0.18623398264842345,
+          "mean_abs_diff_over_std": 0.12816321139083084,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 8.514707072167852,
+          "upper_quantile_abs_diff_over_std": 0.6906201710721497
+        }
+      },
+      "categorical": {
+        "workclass": {
+          "total_variation": 0.2715930902111324,
+          "coverage": 0.3333333333333333,
+          "rare_category_count": 2,
+          "rare_category_recall": 0.0,
+          "synthetic_missing_rate": 0.0
+        },
+        "marital-status": {
+          "total_variation": 0.25105566218809977,
+          "coverage": 0.2857142857142857,
+          "rare_category_count": 1,
+          "rare_category_recall": 0.0,
+          "synthetic_missing_rate": 0.0
+        },
+        "occupation": {
+          "total_variation": 0.4627639155470249,
+          "coverage": 0.5,
+          "rare_category_count": 1,
+          "rare_category_recall": 0.0,
+          "synthetic_missing_rate": 0.0
+        },
+        "relationship": {
+          "total_variation": 0.3312859884836853,
+          "coverage": 0.5,
+          "rare_category_count": 0,
+          "rare_category_recall": null,
+          "synthetic_missing_rate": 0.0
+        },
+        "race": {
+          "total_variation": 0.1406909788867562,
+          "coverage": 0.8,
+          "rare_category_count": 1,
+          "rare_category_recall": 1.0,
+          "synthetic_missing_rate": 0.0
+        },
+        "sex": {
+          "total_variation": 0.1712092130518234,
+          "coverage": 1.0,
+          "rare_category_count": 0,
+          "rare_category_recall": null,
+          "synthetic_missing_rate": 0.0
+        },
+        "native-country": {
+          "total_variation": 0.09500959692898271,
+          "coverage": 0.225,
+          "rare_category_count": 37,
+          "rare_category_recall": 0.1891891891891892,
+          "synthetic_missing_rate": 0.0
+        }
+      },
+      "label_conditional": {
+        "0.0": {
+          "available": 1,
+          "n_real": 3955,
+          "n_synthetic": 3955,
+          "numeric_mean_abs_diff_over_std": {
+            "age": 0.1243104414349734,
+            "fnlwgt": 0.0750734788994256,
+            "education-num": 0.08701547010281666,
+            "capital-gain": 0.06456732764782314,
+            "capital-loss": 0.1565998265575839,
+            "hours-per-week": 0.0981906570492798
+          },
+          "categorical_tv_mean": 0.2870146288603937
+        },
+        "1.0": {
+          "available": 1,
+          "n_real": 1255,
+          "n_synthetic": 1255,
+          "numeric_mean_abs_diff_over_std": {
+            "age": 0.06211115428667258,
+            "fnlwgt": 0.012882545904569023,
+            "education-num": 0.2995227598787791,
+            "capital-gain": 0.0675668980028162,
+            "capital-loss": 0.3062747861550496,
+            "hours-per-week": 0.24881122112125972
+          },
+          "categorical_tv_mean": 0.2097894137734775
+        }
+      }
+    },
+    "privacy": {
+      "n_synthetic": 5210,
+      "n_reference": 20826,
+      "exact_duplicate_fraction_vs_reference": 0.0,
+      "exact_duplicate_count": 0,
+      "rounding": "integer fields, fnlwgt, and capital rounded to integers; other numerics to 4 decimals",
+      "does_not_guarantee_privacy": 1
+    },
+    "selection_detection": {
+      "protocol": "A_selection_cv",
+      "uses_final_test": 0,
+      "n_real": 5210,
+      "n_synthetic": 5210,
+      "fold_auc": [
+        1.0,
+        0.9999982316596581,
+        1.0,
+        1.0
+      ],
+      "mean_auc": 0.9999995579149146,
+      "oriented_auc": 0.9999995579149146,
+      "n_estimators": 80,
+      "max_depth": 16,
+      "random_state": 42
+    }
+  },
+  {
+    "file": "cgan_linear_seed68.pt",
+    "kind": "cgan",
+    "seed": 68,
+    "output_activation": "linear",
+    "lr": 0.001,
+    "acceptable": 0,
+    "weights": "last_epoch_not_a_selected_model",
+    "selected_epoch_number": null,
+    "sample_seed": 42,
+    "split": "selection",
+    "n_selection": 5210,
+    "uses_final_test": 0,
+    "conditioning": "selection row labels",
+    "real_selection_violation_total": 0,
+    "synthetic_hard_validity": {
+      "n_rows": 5210,
+      "missing_columns": [],
+      "violation_counts": {
+        "nonfinite_rows": 0,
+        "outside_reference_domain_rows": 3414,
+        "noninteger_discrete_rows": 5210,
+        "negative_capital_rows": 3401,
+        "invalid_category_rows": 0
+      },
+      "invalid_category_counts": {
+        "workclass": 0,
+        "marital-status": 0,
+        "occupation": 0,
+        "relationship": 0,
+        "race": 0,
+        "sex": 0,
+        "native-country": 0
+      },
+      "violation_total": 5210,
+      "row_violation_fraction": 1.0,
+      "valid": 0
+    },
+    "fidelity_summary": {
+      "numeric_ks_mean": 0.367658349328215,
+      "numeric_wasserstein_over_std_mean": 0.21924694323515367,
+      "categorical_tv_mean": 0.38335618316424463,
+      "category_coverage_mean": 0.5531484388627246,
+      "rare_category_recall": 0.18604651162790697,
+      "rare_category_count": 43,
+      "correlation_mae": 0.08326172320214809,
+      "pairwise_categorical_tv_mean": 0.5918106206014077,
+      "synthetic_unique_fraction": 1.0,
+      "synthetic_duplicate_rate": 0.0,
+      "nearest_neighbor": {
+        "available": 1,
+        "subsample": 400,
+        "seed": 0,
+        "median_real_to_real": 2.437084008387874,
+        "median_synthetic_to_real": 0.7561346800492856,
+        "ratio_synthetic_over_real": 0.31026204982956956,
+        "does_not_guarantee_privacy": 1
+      },
+      "numeric": {
+        "age": {
+          "ks": 0.07677543186180422,
+          "wasserstein": 2.0525016161347684,
+          "wasserstein_over_std": 0.15191907829114215,
+          "mean_abs_diff_over_std": 0.04399372934467624,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 5.747797317337287,
+          "upper_quantile_abs_diff_over_std": 0.42543209895180195
+        },
+        "fnlwgt": {
+          "ks": 0.10211132437619963,
+          "wasserstein": 14847.860382531915,
+          "wasserstein_over_std": 0.13833636418167355,
+          "mean_abs_diff_over_std": 0.11128767440673339,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 1480.8761770005804,
+          "upper_quantile_abs_diff_over_std": 0.013797208543968232
+        },
+        "education-num": {
+          "ks": 0.2738963531669866,
+          "wasserstein": 0.9233111885296367,
+          "wasserstein_over_std": 0.35519101177584,
+          "mean_abs_diff_over_std": 0.31659298064717284,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 1.7121344378965304,
+          "upper_quantile_abs_diff_over_std": 0.6586455041893037
+        },
+        "capital-gain": {
+          "ks": 0.7366602687140115,
+          "wasserstein": 603.7739138348555,
+          "wasserstein_over_std": 0.09493697606035816,
+          "mean_abs_diff_over_std": 0.01597183150594544,
+          "zero_rate_real": 0.9159309021113243,
+          "zero_rate_synthetic": 0.0,
+          "zero_rate_abs_diff": 0.9159309021113243,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 3250.1835014128883,
+          "upper_quantile_abs_diff_over_std": 0.5110565166778712
+        },
+        "capital-loss": {
+          "ks": 0.5975047984644913,
+          "wasserstein": 94.52344111089275,
+          "wasserstein_over_std": 0.23031109051074458,
+          "mean_abs_diff_over_std": 0.22743862938721474,
+          "zero_rate_real": 0.9518234165067179,
+          "zero_rate_synthetic": 0.0023032629558541267,
+          "zero_rate_abs_diff": 0.9495201535508637,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 1964.5329651385427,
+          "upper_quantile_abs_diff_over_std": 4.786682797704708
+        },
+        "hours-per-week": {
+          "ks": 0.41900191938579656,
+          "wasserstein": 4.210720262368684,
+          "wasserstein_over_std": 0.3447871385911636,
+          "mean_abs_diff_over_std": 0.2284602601706211,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 7.128329680996018,
+          "upper_quantile_abs_diff_over_std": 0.5836902573676317
+        }
+      },
+      "categorical": {
+        "workclass": {
+          "total_variation": 0.2982725527831094,
+          "coverage": 0.2222222222222222,
+          "rare_category_count": 2,
+          "rare_category_recall": 0.0,
+          "synthetic_missing_rate": 0.0
+        },
+        "marital-status": {
+          "total_variation": 0.5385796545105566,
+          "coverage": 0.2857142857142857,
+          "rare_category_count": 1,
+          "rare_category_recall": 0.0,
+          "synthetic_missing_rate": 0.0
+        },
+        "occupation": {
+          "total_variation": 0.7042226487523991,
+          "coverage": 0.3333333333333333,
+          "rare_category_count": 2,
+          "rare_category_recall": 0.0,
+          "synthetic_missing_rate": 0.0
+        },
+        "relationship": {
+          "total_variation": 0.5907869481765835,
+          "coverage": 1.0,
+          "rare_category_count": 0,
+          "rare_category_recall": null,
+          "synthetic_missing_rate": 0.0
+        },
+        "race": {
+          "total_variation": 0.13071017274472166,
+          "coverage": 0.8,
+          "rare_category_count": 2,
+          "rare_category_recall": 0.5,
+          "synthetic_missing_rate": 0.0
+        },
+        "sex": {
+          "total_variation": 0.3216890595009597,
+          "coverage": 1.0,
+          "rare_category_count": 0,
+          "rare_category_recall": null,
+          "synthetic_missing_rate": 0.0
+        },
+        "native-country": {
+          "total_variation": 0.09923224568138192,
+          "coverage": 0.23076923076923078,
+          "rare_category_count": 36,
+          "rare_category_recall": 0.19444444444444445,
+          "synthetic_missing_rate": 0.0
+        }
+      },
+      "label_conditional": {
+        "0.0": {
+          "available": 1,
+          "n_real": 3955,
+          "n_synthetic": 3955,
+          "numeric_mean_abs_diff_over_std": {
+            "age": 0.03450152980229048,
+            "fnlwgt": 0.18568210575290367,
+            "education-num": 0.2664292893202093,
+            "capital-gain": 0.05860769188089212,
+            "capital-loss": 0.17320965869742175,
+            "hours-per-week": 0.34379016038140936
+          },
+          "categorical_tv_mean": 0.4311359942206971
+        },
+        "1.0": {
+          "available": 1,
+          "n_real": 1255,
+          "n_synthetic": 1255,
+          "numeric_mean_abs_diff_over_std": {
+            "age": 0.09217595432758446,
+            "fnlwgt": 0.11953196002936403,
+            "education-num": 0.5639349960669401,
+            "capital-gain": 0.04925906094904205,
+            "capital-loss": 0.35673972601719933,
+            "hours-per-week": 0.15527805795245841
+          },
+          "categorical_tv_mean": 0.23278315310187822
+        }
+      }
+    },
+    "privacy": {
+      "n_synthetic": 5210,
+      "n_reference": 20827,
+      "exact_duplicate_fraction_vs_reference": 0.0,
+      "exact_duplicate_count": 0,
+      "rounding": "integer fields, fnlwgt, and capital rounded to integers; other numerics to 4 decimals",
+      "does_not_guarantee_privacy": 1
+    },
+    "selection_detection": {
+      "protocol": "A_selection_cv",
+      "uses_final_test": 0,
+      "n_real": 5210,
+      "n_synthetic": 5210,
+      "fold_auc": [
+        1.0,
+        0.9999740643416528,
+        1.0,
+        0.9999882110643875
+      ],
+      "mean_auc": 0.99999056885151,
+      "oriented_auc": 0.99999056885151,
+      "n_estimators": 80,
+      "max_depth": 16,
+      "random_state": 42
+    }
+  },
+  {
+    "file": "cgan_sigmoid_seed124.pt",
+    "kind": "cgan",
+    "seed": 124,
+    "output_activation": "sigmoid",
+    "lr": 0.001,
+    "acceptable": 1,
+    "weights": "selected_epoch",
+    "selected_epoch_number": 10,
+    "sample_seed": 42,
+    "split": "selection",
+    "n_selection": 5210,
+    "uses_final_test": 0,
+    "conditioning": "selection row labels",
+    "real_selection_violation_total": 0,
+    "synthetic_hard_validity": {
+      "n_rows": 5210,
+      "missing_columns": [],
+      "violation_counts": {
+        "nonfinite_rows": 0,
+        "outside_reference_domain_rows": 0,
+        "noninteger_discrete_rows": 5210,
+        "negative_capital_rows": 0,
+        "invalid_category_rows": 0
+      },
+      "invalid_category_counts": {
+        "workclass": 0,
+        "marital-status": 0,
+        "occupation": 0,
+        "relationship": 0,
+        "race": 0,
+        "sex": 0,
+        "native-country": 0
+      },
+      "violation_total": 5210,
+      "row_violation_fraction": 1.0,
+      "valid": 0
+    },
+    "fidelity_summary": {
+      "numeric_ks_mean": 0.577191298784389,
+      "numeric_wasserstein_over_std_mean": 0.4671161076695407,
+      "categorical_tv_mean": 0.40745818480943247,
+      "category_coverage_mean": 0.21740362811791383,
+      "rare_category_recall": 0.0,
+      "rare_category_count": 43,
+      "correlation_mae": 0.19770058537714977,
+      "pairwise_categorical_tv_mean": 0.6305913536239831,
+      "synthetic_unique_fraction": 1.0,
+      "synthetic_duplicate_rate": 0.0,
+      "nearest_neighbor": {
+        "available": 1,
+        "subsample": 400,
+        "seed": 0,
+        "median_real_to_real": 2.5559563698065157,
+        "median_synthetic_to_real": 0.7132017038156531,
+        "ratio_synthetic_over_real": 0.27903516360478486,
+        "does_not_guarantee_privacy": 1
+      },
+      "numeric": {
+        "age": {
+          "ks": 0.47811900191938583,
+          "wasserstein": 9.796148903226044,
+          "wasserstein_over_std": 0.7203828707976571,
+          "mean_abs_diff_over_std": 0.5349451147756662,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 17.286911655664454,
+          "upper_quantile_abs_diff_over_std": 1.2712337438676522
+        },
+        "fnlwgt": {
+          "ks": 0.16276391554702496,
+          "wasserstein": 36845.04290284376,
+          "wasserstein_over_std": 0.35460298641566185,
+          "mean_abs_diff_over_std": 0.21593701873255478,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 214788.38323480566,
+          "upper_quantile_abs_diff_over_std": 2.0671600883541177
+        },
+        "education-num": {
+          "ks": 0.644721689059501,
+          "wasserstein": 2.183814633566164,
+          "wasserstein_over_std": 0.8618315148405019,
+          "mean_abs_diff_over_std": 0.6907750507704616,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 4.695807409286502,
+          "upper_quantile_abs_diff_over_std": 1.8531768909048412
+        },
+        "capital-gain": {
+          "ks": 0.9147792706333974,
+          "wasserstein": 1043.4751701688174,
+          "wasserstein_over_std": 0.14502572586693904,
+          "mean_abs_diff_over_std": 0.1450160068163537,
+          "zero_rate_real": 0.9147792706333974,
+          "zero_rate_synthetic": 0.5767754318618042,
+          "zero_rate_abs_diff": 0.3380038387715931,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 15019.78700984173,
+          "upper_quantile_abs_diff_over_std": 2.0875010500889184
+        },
+        "capital-loss": {
+          "ks": 0.9543186180422265,
+          "wasserstein": 85.98512370263266,
+          "wasserstein_over_std": 0.21414693417822703,
+          "mean_abs_diff_over_std": 0.21408614030497444,
+          "zero_rate_real": 0.9543186180422265,
+          "zero_rate_synthetic": 0.7049904030710172,
+          "zero_rate_abs_diff": 0.24932821497120927,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 2001.2479204971505,
+          "upper_quantile_abs_diff_over_std": 4.9841308385754575
+        },
+        "hours-per-week": {
+          "ks": 0.30844529750479843,
+          "wasserstein": 6.2770099551872764,
+          "wasserstein_over_std": 0.5067066139182573,
+          "mean_abs_diff_over_std": 0.019197923636642484,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 34.359691523909575,
+          "upper_quantile_abs_diff_over_std": 2.773658648249926
+        }
+      },
+      "categorical": {
+        "workclass": {
+          "total_variation": 0.29942418426103645,
+          "coverage": 0.1111111111111111,
+          "rare_category_count": 2,
+          "rare_category_recall": 0.0,
+          "synthetic_missing_rate": 0.0
+        },
+        "marital-status": {
+          "total_variation": 0.4859884836852207,
+          "coverage": 0.2857142857142857,
+          "rare_category_count": 1,
+          "rare_category_recall": 0.0,
+          "synthetic_missing_rate": 0.0
+        },
+        "occupation": {
+          "total_variation": 0.9506717850287908,
+          "coverage": 0.06666666666666667,
+          "rare_category_count": 2,
+          "rare_category_recall": 0.0,
+          "synthetic_missing_rate": 0.0
+        },
+        "relationship": {
+          "total_variation": 0.5381957773512477,
+          "coverage": 0.3333333333333333,
+          "rare_category_count": 0,
+          "rare_category_recall": null,
+          "synthetic_missing_rate": 0.0
+        },
+        "race": {
+          "total_variation": 0.1489443378119002,
+          "coverage": 0.2,
+          "rare_category_count": 1,
+          "rare_category_recall": 0.0,
+          "synthetic_missing_rate": 0.0
+        },
+        "sex": {
+          "total_variation": 0.3309021113243762,
+          "coverage": 0.5,
+          "rare_category_count": 0,
+          "rare_category_recall": null,
+          "synthetic_missing_rate": 0.0
+        },
+        "native-country": {
+          "total_variation": 0.09808061420345492,
+          "coverage": 0.025,
+          "rare_category_count": 37,
+          "rare_category_recall": 0.0,
+          "synthetic_missing_rate": 0.0
+        }
+      },
+      "label_conditional": {
+        "0.0": {
+          "available": 1,
+          "n_real": 3955,
+          "n_synthetic": 3955,
+          "numeric_mean_abs_diff_over_std": {
+            "age": 0.5016461982615185,
+            "fnlwgt": 0.10175163421171583,
+            "education-num": 0.6665407607862706,
+            "capital-gain": 0.15443821476213268,
+            "capital-loss": 0.1638418424874777,
+            "hours-per-week": 0.09847353651989162
+          },
+          "categorical_tv_mean": 0.4459815784720968
+        },
+        "1.0": {
+          "available": 1,
+          "n_real": 1255,
+          "n_synthetic": 1255,
+          "numeric_mean_abs_diff_over_std": {
+            "age": 0.7712619538972189,
+            "fnlwgt": 0.5585013020812223,
+            "education-num": 0.9128561313562973,
+            "capital-gain": 0.26098180382605923,
+            "capital-loss": 0.332723636287112,
+            "hours-per-week": 0.46067211511806216
+          },
+          "categorical_tv_mean": 0.2860557768924303
+        }
+      }
+    },
+    "privacy": {
+      "n_synthetic": 5210,
+      "n_reference": 20825,
+      "exact_duplicate_fraction_vs_reference": 0.0,
+      "exact_duplicate_count": 0,
+      "rounding": "integer fields, fnlwgt, and capital rounded to integers; other numerics to 4 decimals",
+      "does_not_guarantee_privacy": 1
+    },
+    "selection_detection": {
+      "protocol": "A_selection_cv",
+      "uses_final_test": 0,
+      "n_real": 5210,
+      "n_synthetic": 5210,
+      "fold_auc": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "mean_auc": 1.0,
+      "oriented_auc": 1.0,
+      "n_estimators": 80,
+      "max_depth": 16,
+      "random_state": 42
+    }
+  },
+  {
+    "file": "cgan_sigmoid_seed42.pt",
+    "kind": "cgan",
+    "seed": 42,
+    "output_activation": "sigmoid",
+    "lr": 0.001,
+    "acceptable": 1,
+    "weights": "selected_epoch",
+    "selected_epoch_number": 70,
+    "sample_seed": 42,
+    "split": "selection",
+    "n_selection": 5210,
+    "uses_final_test": 0,
+    "conditioning": "selection row labels",
+    "real_selection_violation_total": 0,
+    "synthetic_hard_validity": {
+      "n_rows": 5210,
+      "missing_columns": [],
+      "violation_counts": {
+        "nonfinite_rows": 0,
+        "outside_reference_domain_rows": 0,
+        "noninteger_discrete_rows": 5210,
+        "negative_capital_rows": 0,
+        "invalid_category_rows": 0
+      },
+      "invalid_category_counts": {
+        "workclass": 0,
+        "marital-status": 0,
+        "occupation": 0,
+        "relationship": 0,
+        "race": 0,
+        "sex": 0,
+        "native-country": 0
+      },
+      "violation_total": 5210,
+      "row_violation_fraction": 1.0,
+      "valid": 0
+    },
+    "fidelity_summary": {
+      "numeric_ks_mean": 0.450639795265515,
+      "numeric_wasserstein_over_std_mean": 0.29998855266079977,
+      "categorical_tv_mean": 0.38094324102001637,
+      "category_coverage_mean": 0.23871882086167798,
+      "rare_category_recall": 0.0,
+      "rare_category_count": 42,
+      "correlation_mae": 0.1362878891032094,
+      "pairwise_categorical_tv_mean": 0.5867013984096517,
+      "synthetic_unique_fraction": 1.0,
+      "synthetic_duplicate_rate": 0.0,
+      "nearest_neighbor": {
+        "available": 1,
+        "subsample": 400,
+        "seed": 0,
+        "median_real_to_real": 3.2487469209273288,
+        "median_synthetic_to_real": 0.9344559336647893,
+        "ratio_synthetic_over_real": 0.287635804329768,
+        "does_not_guarantee_privacy": 1
+      },
+      "numeric": {
+        "age": {
+          "ks": 0.22245681381957771,
+          "wasserstein": 6.451252979725144,
+          "wasserstein_over_std": 0.4658933397612398,
+          "mean_abs_diff_over_std": 0.014703298113885016,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 22.67397809386255,
+          "upper_quantile_abs_diff_over_std": 1.6374579346092981
+        },
+        "fnlwgt": {
+          "ks": 0.3763915547024952,
+          "wasserstein": 62827.89286939723,
+          "wasserstein_over_std": 0.5861875759259234,
+          "mean_abs_diff_over_std": 0.3555309354192201,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 178739.22209226165,
+          "upper_quantile_abs_diff_over_std": 1.6676464311631038
+        },
+        "education-num": {
+          "ks": 0.21113243761996162,
+          "wasserstein": 0.6761819095978236,
+          "wasserstein_over_std": 0.2610671600542021,
+          "mean_abs_diff_over_std": 0.007820725143446451,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 1.5561092734336857,
+          "upper_quantile_abs_diff_over_std": 0.6007984286225094
+        },
+        "capital-gain": {
+          "ks": 0.9134357005758157,
+          "wasserstein": 920.1987714308904,
+          "wasserstein_over_std": 0.13015448495463894,
+          "mean_abs_diff_over_std": 0.037406353569998364,
+          "zero_rate_real": 0.9134357005758157,
+          "zero_rate_synthetic": 0.20095969289827256,
+          "zero_rate_abs_diff": 0.7124760076775432,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 1498.8695102280362,
+          "upper_quantile_abs_diff_over_std": 0.2120026620059375
+        },
+        "capital-loss": {
+          "ks": 0.636852207293666,
+          "wasserstein": 11.109035912455283,
+          "wasserstein_over_std": 0.027636758843229716,
+          "mean_abs_diff_over_std": 0.01977078540483854,
+          "zero_rate_real": 0.9525911708253358,
+          "zero_rate_synthetic": 0.9103646833013436,
+          "zero_rate_abs_diff": 0.04222648752399227,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 156.6740154933923,
+          "upper_quantile_abs_diff_over_std": 0.38976937488667496
+        },
+        "hours-per-week": {
+          "ks": 0.3435700575815739,
+          "wasserstein": 4.056166603776221,
+          "wasserstein_over_std": 0.3289919964255645,
+          "mean_abs_diff_over_std": 0.17690987878592507,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 13.975270445346851,
+          "upper_quantile_abs_diff_over_std": 1.1335215176125706
+        }
+      },
+      "categorical": {
+        "workclass": {
+          "total_variation": 0.2666026871401152,
+          "coverage": 0.2222222222222222,
+          "rare_category_count": 2,
+          "rare_category_recall": 0.0,
+          "synthetic_missing_rate": 0.0
+        },
+        "marital-status": {
+          "total_variation": 0.5383877159309021,
+          "coverage": 0.14285714285714285,
+          "rare_category_count": 1,
+          "rare_category_recall": 0.0,
+          "synthetic_missing_rate": 0.0
+        },
+        "occupation": {
+          "total_variation": 0.6896353166986564,
+          "coverage": 0.21428571428571427,
+          "rare_category_count": 1,
+          "rare_category_recall": 0.0,
+          "synthetic_missing_rate": 0.0
+        },
+        "relationship": {
+          "total_variation": 0.5940499040307101,
+          "coverage": 0.16666666666666666,
+          "rare_category_count": 0,
+          "rare_category_recall": null,
+          "synthetic_missing_rate": 0.0
+        },
+        "race": {
+          "total_variation": 0.13819577735124763,
+          "coverage": 0.4,
+          "rare_category_count": 1,
+          "rare_category_recall": 0.0,
+          "synthetic_missing_rate": 0.0
+        },
+        "sex": {
+          "total_variation": 0.3312859884836852,
+          "coverage": 0.5,
+          "rare_category_count": 0,
+          "rare_category_recall": null,
+          "synthetic_missing_rate": 0.0
+        },
+        "native-country": {
+          "total_variation": 0.10844529750479846,
+          "coverage": 0.025,
+          "rare_category_count": 37,
+          "rare_category_recall": 0.0,
+          "synthetic_missing_rate": 0.0
+        }
+      },
+      "label_conditional": {
+        "0.0": {
+          "available": 1,
+          "n_real": 3955,
+          "n_synthetic": 3955,
+          "numeric_mean_abs_diff_over_std": {
+            "age": 0.0006288173448188587,
+            "fnlwgt": 0.34952293475835877,
+            "education-num": 0.03385433024996169,
+            "capital-gain": 0.0020068148527706085,
+            "capital-loss": 0.0034040176183248298,
+            "hours-per-week": 0.12902484864276478
+          },
+          "categorical_tv_mean": 0.4377821925230269
+        },
+        "1.0": {
+          "available": 1,
+          "n_real": 1255,
+          "n_synthetic": 1255,
+          "numeric_mean_abs_diff_over_std": {
+            "age": 0.08232205637517008,
+            "fnlwgt": 0.37446061110771683,
+            "education-num": 0.1487294262624481,
+            "capital-gain": 0.07924914545731626,
+            "capital-loss": 0.0514499668413675,
+            "hours-per-week": 0.3661946614786977
+          },
+          "categorical_tv_mean": 0.2367672168468981
+        }
+      }
+    },
+    "privacy": {
+      "n_synthetic": 5210,
+      "n_reference": 20826,
+      "exact_duplicate_fraction_vs_reference": 0.0,
+      "exact_duplicate_count": 0,
+      "rounding": "integer fields, fnlwgt, and capital rounded to integers; other numerics to 4 decimals",
+      "does_not_guarantee_privacy": 1
+    },
+    "selection_detection": {
+      "protocol": "A_selection_cv",
+      "uses_final_test": 0,
+      "n_real": 5210,
+      "n_synthetic": 5210,
+      "fold_auc": [
+        0.9999245508120809,
+        0.9999958738725356,
+        0.9999976422128776,
+        0.9999770115755559
+      ],
+      "mean_auc": 0.9999737696182625,
+      "oriented_auc": 0.9999737696182625,
+      "n_estimators": 80,
+      "max_depth": 16,
+      "random_state": 42
+    }
+  },
+  {
+    "file": "cgan_sigmoid_seed68.pt",
+    "kind": "cgan",
+    "seed": 68,
+    "output_activation": "sigmoid",
+    "lr": 0.001,
+    "acceptable": 0,
+    "weights": "last_epoch_not_a_selected_model",
+    "selected_epoch_number": null,
+    "sample_seed": 42,
+    "split": "selection",
+    "n_selection": 5210,
+    "uses_final_test": 0,
+    "conditioning": "selection row labels",
+    "real_selection_violation_total": 0,
+    "synthetic_hard_validity": {
+      "n_rows": 5210,
+      "missing_columns": [],
+      "violation_counts": {
+        "nonfinite_rows": 0,
+        "outside_reference_domain_rows": 0,
+        "noninteger_discrete_rows": 2020,
+        "negative_capital_rows": 0,
+        "invalid_category_rows": 0
+      },
+      "invalid_category_counts": {
+        "workclass": 0,
+        "marital-status": 0,
+        "occupation": 0,
+        "relationship": 0,
+        "race": 0,
+        "sex": 0,
+        "native-country": 0
+      },
+      "violation_total": 2020,
+      "row_violation_fraction": 0.3877159309021113,
+      "valid": 0
+    },
+    "fidelity_summary": {
+      "numeric_ks_mean": 0.9983685220729367,
+      "numeric_wasserstein_over_std_mean": 8.348186714278718,
+      "categorical_tv_mean": 0.8108034000548398,
+      "category_coverage_mean": 0.30040118611547184,
+      "rare_category_recall": 0.09302325581395349,
+      "rare_category_count": 43,
+      "correlation_mae": 0.509867467725725,
+      "pairwise_categorical_tv_mean": 0.9521250342747465,
+      "synthetic_unique_fraction": 0.20518234165067178,
+      "synthetic_duplicate_rate": 0.7948176583493283,
+      "nearest_neighbor": {
+        "available": 1,
+        "subsample": 400,
+        "seed": 0,
+        "median_real_to_real": 2.437083855418527,
+        "median_synthetic_to_real": 25.562439823188008,
+        "ratio_synthetic_over_real": 10.488945534784687,
+        "does_not_guarantee_privacy": 1
+      },
+      "numeric": {
+        "age": {
+          "ks": 0.9982725527831094,
+          "wasserstein": 51.380905997435676,
+          "wasserstein_over_std": 3.8030371595815957,
+          "mean_abs_diff_over_std": 3.8030371595815966,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 17.000000417232513,
+          "upper_quantile_abs_diff_over_std": 1.258281302063154
+        },
+        "fnlwgt": {
+          "ks": 1.0,
+          "wasserstein": 1293416.4366511963,
+          "wasserstein_over_std": 12.050660661539723,
+          "mean_abs_diff_over_std": 12.050660661539723,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 948203.5342748546,
+          "upper_quantile_abs_diff_over_std": 8.83433881449921
+        },
+        "education-num": {
+          "ks": 0.9982725527831094,
+          "wasserstein": 9.067916297067024,
+          "wasserstein_over_std": 3.4883606709091666,
+          "mean_abs_diff_over_std": 3.4883606709091666,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 14.955319520202465,
+          "upper_quantile_abs_diff_over_std": 5.753201366892682
+        },
+        "capital-gain": {
+          "ks": 0.9965451055662188,
+          "wasserstein": 99067.41789157133,
+          "wasserstein_over_std": 15.577289264628106,
+          "mean_abs_diff_over_std": 15.577289264628105,
+          "zero_rate_real": 0.9159309021113243,
+          "zero_rate_synthetic": 0.0,
+          "zero_rate_abs_diff": 0.9159309021113243,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 84974.99933351576,
+          "upper_quantile_abs_diff_over_std": 13.361407544996432
+        },
+        "capital-loss": {
+          "ks": 0.9998080614203455,
+          "wasserstein": 4265.464070526101,
+          "wasserstein_over_std": 10.393016469243271,
+          "mean_abs_diff_over_std": 10.39301646924327,
+          "zero_rate_real": 0.9518234165067179,
+          "zero_rate_synthetic": 0.0,
+          "zero_rate_abs_diff": 0.9518234165067179,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 2379.0000561475754,
+          "upper_quantile_abs_diff_over_std": 5.796552580226716
+        },
+        "hours-per-week": {
+          "ks": 0.9973128598848369,
+          "wasserstein": 58.33623486190797,
+          "wasserstein_over_std": 4.7767560597704435,
+          "mean_abs_diff_over_std": 4.776756059770445,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 22.00000119209288,
+          "upper_quantile_abs_diff_over_std": 1.8014299218667396
+        }
+      },
+      "categorical": {
+        "workclass": {
+          "total_variation": 0.9053742802303263,
+          "coverage": 0.2222222222222222,
+          "rare_category_count": 2,
+          "rare_category_recall": 0.0,
+          "synthetic_missing_rate": 0.0
+        },
+        "marital-status": {
+          "total_variation": 0.5372360844529751,
+          "coverage": 0.2857142857142857,
+          "rare_category_count": 1,
+          "rare_category_recall": 0.0,
+          "synthetic_missing_rate": 0.0
+        },
+        "occupation": {
+          "total_variation": 0.7700575815738963,
+          "coverage": 0.4,
+          "rare_category_count": 2,
+          "rare_category_recall": 0.0,
+          "synthetic_missing_rate": 0.0
+        },
+        "relationship": {
+          "total_variation": 0.8512476007677543,
+          "coverage": 0.16666666666666666,
+          "rare_category_count": 0,
+          "rare_category_recall": null,
+          "synthetic_missing_rate": 0.0
+        },
+        "race": {
+          "total_variation": 0.9802303262955854,
+          "coverage": 0.4,
+          "rare_category_count": 2,
+          "rare_category_recall": 0.5,
+          "synthetic_missing_rate": 0.0
+        },
+        "sex": {
+          "total_variation": 0.6756238003838771,
+          "coverage": 0.5,
+          "rare_category_count": 0,
+          "rare_category_recall": null,
+          "synthetic_missing_rate": 0.0
+        },
+        "native-country": {
+          "total_variation": 0.9558541266794626,
+          "coverage": 0.1282051282051282,
+          "rare_category_count": 36,
+          "rare_category_recall": 0.08333333333333333,
+          "synthetic_missing_rate": 0.0
+        }
+      },
+      "label_conditional": {
+        "0.0": {
+          "available": 1,
+          "n_real": 3955,
+          "n_synthetic": 3955,
+          "numeric_mean_abs_diff_over_std": {
+            "age": 3.7970073252274084,
+            "fnlwgt": 12.096878022643173,
+            "education-num": 3.5054746357395308,
+            "capital-gain": 94.32759203640347,
+            "capital-loss": 14.283699511483606,
+            "hours-per-week": 4.922068792430182
+          },
+          "categorical_tv_mean": 0.7791222683763771
+        },
+        "1.0": {
+          "available": 1,
+          "n_real": 1255,
+          "n_synthetic": 1255,
+          "numeric_mean_abs_diff_over_std": {
+            "age": 4.481706644136963,
+            "fnlwgt": 11.908362723551427,
+            "education-num": 4.4039232320727155,
+            "capital-gain": 7.718000228273896,
+            "capital-loss": 6.617232726643693,
+            "hours-per-week": 5.018418136960496
+          },
+          "categorical_tv_mean": 0.91770062606716
+        }
+      }
+    },
+    "privacy": {
+      "n_synthetic": 5210,
+      "n_reference": 20827,
+      "exact_duplicate_fraction_vs_reference": 0.0,
+      "exact_duplicate_count": 0,
+      "rounding": "integer fields, fnlwgt, and capital rounded to integers; other numerics to 4 decimals",
+      "does_not_guarantee_privacy": 1
+    },
+    "selection_detection": {
+      "protocol": "A_selection_cv",
+      "uses_final_test": 0,
+      "n_real": 5210,
+      "n_synthetic": 5210,
+      "fold_auc": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "mean_auc": 1.0,
+      "oriented_auc": 1.0,
+      "n_estimators": 80,
+      "max_depth": 16,
+      "random_state": 42
+    }
+  },
+  {
+    "file": "gan_linear_seed124.pt",
+    "kind": "gan",
+    "seed": 124,
+    "output_activation": "linear",
+    "lr": 0.001,
+    "acceptable": 0,
+    "weights": "last_epoch_not_a_selected_model",
+    "selected_epoch_number": null,
+    "sample_seed": 42,
+    "split": "selection",
+    "n_selection": 5210,
+    "uses_final_test": 0,
+    "conditioning": null,
+    "real_selection_violation_total": 0,
+    "synthetic_hard_validity": {
+      "n_rows": 5210,
+      "missing_columns": [],
+      "violation_counts": {
+        "nonfinite_rows": 0,
+        "outside_reference_domain_rows": 3575,
+        "noninteger_discrete_rows": 5210,
+        "negative_capital_rows": 3575,
+        "invalid_category_rows": 0
+      },
+      "invalid_category_counts": {
+        "workclass": 0,
+        "marital-status": 0,
+        "occupation": 0,
+        "relationship": 0,
+        "race": 0,
+        "sex": 0,
+        "native-country": 0
+      },
+      "violation_total": 5210,
+      "row_violation_fraction": 1.0,
+      "valid": 0
+    },
+    "fidelity_summary": {
+      "numeric_ks_mean": 0.5190978886756238,
+      "numeric_wasserstein_over_std_mean": 0.4696056927016965,
+      "categorical_tv_mean": 0.318426103646833,
+      "category_coverage_mean": 0.5016439909297052,
+      "rare_category_recall": 0.046511627906976744,
+      "rare_category_count": 43,
+      "correlation_mae": 0.4659164587399802,
+      "pairwise_categorical_tv_mean": 0.5265606434512385,
+      "synthetic_unique_fraction": 1.0,
+      "synthetic_duplicate_rate": 0.0,
+      "nearest_neighbor": {
+        "available": 1,
+        "subsample": 400,
+        "seed": 0,
+        "median_real_to_real": 2.5559564134856334,
+        "median_synthetic_to_real": 4.637163737514667,
+        "ratio_synthetic_over_real": 1.8142577522246672,
+        "does_not_guarantee_privacy": 1
+      },
+      "numeric": {
+        "age": {
+          "ks": 0.3641074856046065,
+          "wasserstein": 7.193743088153495,
+          "wasserstein_over_std": 0.5290088304721008,
+          "mean_abs_diff_over_std": 0.1219655862894324,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 10.824675610573976,
+          "upper_quantile_abs_diff_over_std": 0.7960179999226888
+        },
+        "fnlwgt": {
+          "ks": 0.16660268714011517,
+          "wasserstein": 32847.56956456385,
+          "wasserstein_over_std": 0.31613062025976385,
+          "mean_abs_diff_over_std": 0.10779751489554035,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 235500.43353328673,
+          "upper_quantile_abs_diff_over_std": 2.2664963987057702
+        },
+        "education-num": {
+          "ks": 0.5596928982725529,
+          "wasserstein": 2.374608475073762,
+          "wasserstein_over_std": 0.9371273361840265,
+          "mean_abs_diff_over_std": 0.9371273361840265,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 2.1709597815168777,
+          "upper_quantile_abs_diff_over_std": 0.856758399698869
+        },
+        "capital-gain": {
+          "ks": 0.7859884836852208,
+          "wasserstein": 1323.6007413223047,
+          "wasserstein_over_std": 0.18395853499772818,
+          "mean_abs_diff_over_std": 0.017991233666560278,
+          "zero_rate_real": 0.9147792706333974,
+          "zero_rate_synthetic": 0.0,
+          "zero_rate_abs_diff": 0.9147792706333974,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 8579.349192202091,
+          "upper_quantile_abs_diff_over_std": 1.1923871446722978
+        },
+        "capital-loss": {
+          "ks": 0.6861804222648752,
+          "wasserstein": 123.11985430427971,
+          "wasserstein_over_std": 0.3066314062519162,
+          "mean_abs_diff_over_std": 0.26364763433383237,
+          "zero_rate_real": 0.9543186180422265,
+          "zero_rate_synthetic": 0.0,
+          "zero_rate_abs_diff": 0.9543186180422265,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 1933.1031143430582,
+          "upper_quantile_abs_diff_over_std": 4.814415430642419
+        },
+        "hours-per-week": {
+          "ks": 0.5520153550863723,
+          "wasserstein": 6.7486258625356745,
+          "wasserstein_over_std": 0.5447774280446436,
+          "mean_abs_diff_over_std": 0.24288863133527505,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 29.963930988614464,
+          "upper_quantile_abs_diff_over_std": 2.4188143765242387
+        }
+      },
+      "categorical": {
+        "workclass": {
+          "total_variation": 0.4476007677543186,
+          "coverage": 0.5555555555555556,
+          "rare_category_count": 2,
+          "rare_category_recall": 0.0,
+          "synthetic_missing_rate": 0.0
+        },
+        "marital-status": {
+          "total_variation": 0.4245681381957773,
+          "coverage": 0.7142857142857143,
+          "rare_category_count": 1,
+          "rare_category_recall": 0.0,
+          "synthetic_missing_rate": 0.0
+        },
+        "occupation": {
+          "total_variation": 0.6216890595009597,
+          "coverage": 0.26666666666666666,
+          "rare_category_count": 2,
+          "rare_category_recall": 0.0,
+          "synthetic_missing_rate": 0.0
+        },
+        "relationship": {
+          "total_variation": 0.3380038387715931,
+          "coverage": 0.5,
+          "rare_category_count": 0,
+          "rare_category_recall": null,
+          "synthetic_missing_rate": 0.0
+        },
+        "race": {
+          "total_variation": 0.1276391554702495,
+          "coverage": 0.4,
+          "rare_category_count": 1,
+          "rare_category_recall": 0.0,
+          "synthetic_missing_rate": 0.0
+        },
+        "sex": {
+          "total_variation": 0.17216890595009596,
+          "coverage": 1.0,
+          "rare_category_count": 0,
+          "rare_category_recall": null,
+          "synthetic_missing_rate": 0.0
+        },
+        "native-country": {
+          "total_variation": 0.09731285988483689,
+          "coverage": 0.075,
+          "rare_category_count": 37,
+          "rare_category_recall": 0.05405405405405406,
+          "synthetic_missing_rate": 0.0
+        }
+      },
+      "label_conditional": null
+    },
+    "privacy": {
+      "n_synthetic": 5210,
+      "n_reference": 20825,
+      "exact_duplicate_fraction_vs_reference": 0.0,
+      "exact_duplicate_count": 0,
+      "rounding": "integer fields, fnlwgt, and capital rounded to integers; other numerics to 4 decimals",
+      "does_not_guarantee_privacy": 1
+    },
+    "selection_detection": {
+      "protocol": "A_selection_cv",
+      "uses_final_test": 0,
+      "n_real": 5210,
+      "n_synthetic": 5210,
+      "fold_auc": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "mean_auc": 1.0,
+      "oriented_auc": 1.0,
+      "n_estimators": 80,
+      "max_depth": 16,
+      "random_state": 42
+    }
+  },
+  {
+    "file": "gan_linear_seed42.pt",
+    "kind": "gan",
+    "seed": 42,
+    "output_activation": "linear",
+    "lr": 0.001,
+    "acceptable": 0,
+    "weights": "last_epoch_not_a_selected_model",
+    "selected_epoch_number": null,
+    "sample_seed": 42,
+    "split": "selection",
+    "n_selection": 5210,
+    "uses_final_test": 0,
+    "conditioning": null,
+    "real_selection_violation_total": 0,
+    "synthetic_hard_validity": {
+      "n_rows": 5210,
+      "missing_columns": [],
+      "violation_counts": {
+        "nonfinite_rows": 0,
+        "outside_reference_domain_rows": 3855,
+        "noninteger_discrete_rows": 5210,
+        "negative_capital_rows": 3798,
+        "invalid_category_rows": 0
+      },
+      "invalid_category_counts": {
+        "workclass": 0,
+        "marital-status": 0,
+        "occupation": 0,
+        "relationship": 0,
+        "race": 0,
+        "sex": 0,
+        "native-country": 0
+      },
+      "violation_total": 5210,
+      "row_violation_fraction": 1.0,
+      "valid": 0
+    },
+    "fidelity_summary": {
+      "numeric_ks_mean": 0.5943378119001919,
+      "numeric_wasserstein_over_std_mean": 0.5511096937083709,
+      "categorical_tv_mean": 0.32931176309295307,
+      "category_coverage_mean": 0.5633786848072562,
+      "rare_category_recall": 0.21428571428571427,
+      "rare_category_count": 42,
+      "correlation_mae": 0.19621082535033604,
+      "pairwise_categorical_tv_mean": 0.5264875239923226,
+      "synthetic_unique_fraction": 1.0,
+      "synthetic_duplicate_rate": 0.0,
+      "nearest_neighbor": {
+        "available": 1,
+        "subsample": 400,
+        "seed": 0,
+        "median_real_to_real": 3.2487469210224926,
+        "median_synthetic_to_real": 1.162401275865521,
+        "ratio_synthetic_over_real": 0.3577998853476938,
+        "does_not_guarantee_privacy": 1
+      },
+      "numeric": {
+        "age": {
+          "ks": 0.4190019193857965,
+          "wasserstein": 8.31387583163778,
+          "wasserstein_over_std": 0.6004073062698757,
+          "mean_abs_diff_over_std": 0.3550008221830249,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 13.114484088298674,
+          "upper_quantile_abs_diff_over_std": 0.9470952205721624
+        },
+        "fnlwgt": {
+          "ks": 0.19347408829174667,
+          "wasserstein": 43380.222018785586,
+          "wasserstein_over_std": 0.40473977440550707,
+          "mean_abs_diff_over_std": 0.24380462068581557,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 163764.94899507245,
+          "upper_quantile_abs_diff_over_std": 1.5279356680814549
+        },
+        "education-num": {
+          "ks": 0.7247600767754319,
+          "wasserstein": 2.5464357513685645,
+          "wasserstein_over_std": 0.9831536821375111,
+          "mean_abs_diff_over_std": 0.9831536821375108,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 4.918897618193959,
+          "upper_quantile_abs_diff_over_std": 1.8991377664980282
+        },
+        "capital-gain": {
+          "ks": 0.7138195777351247,
+          "wasserstein": 1103.5731519444917,
+          "wasserstein_over_std": 0.1560912747562806,
+          "mean_abs_diff_over_std": 0.14354284049149588,
+          "zero_rate_real": 0.9134357005758157,
+          "zero_rate_synthetic": 0.0,
+          "zero_rate_abs_diff": 0.9134357005758157,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 11432.76123517573,
+          "upper_quantile_abs_diff_over_std": 1.6170693098490039
+        },
+        "capital-loss": {
+          "ks": 0.7648752399232245,
+          "wasserstein": 102.36149349620362,
+          "wasserstein_over_std": 0.2546521536321484,
+          "mean_abs_diff_over_std": 0.14800392707796026,
+          "zero_rate_real": 0.9525911708253358,
+          "zero_rate_synthetic": 0.0009596928982725527,
+          "zero_rate_abs_diff": 0.9516314779270633,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 1800.1953104773925,
+          "upper_quantile_abs_diff_over_std": 4.478477180372169
+        },
+        "hours-per-week": {
+          "ks": 0.7500959692898272,
+          "wasserstein": 11.190039651015466,
+          "wasserstein_over_std": 0.9076139710489027,
+          "mean_abs_diff_over_std": 0.8447278240892042,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 36.66319095694024,
+          "upper_quantile_abs_diff_over_std": 2.973718179160611
+        }
+      },
+      "categorical": {
+        "workclass": {
+          "total_variation": 0.22725527831094053,
+          "coverage": 0.5555555555555556,
+          "rare_category_count": 2,
+          "rare_category_recall": 0.5,
+          "synthetic_missing_rate": 0.0
+        },
+        "marital-status": {
+          "total_variation": 0.35239923224568137,
+          "coverage": 0.5714285714285714,
+          "rare_category_count": 1,
+          "rare_category_recall": 0.0,
+          "synthetic_missing_rate": 0.0
+        },
+        "occupation": {
+          "total_variation": 0.8479846449136276,
+          "coverage": 0.5,
+          "rare_category_count": 1,
+          "rare_category_recall": 0.0,
+          "synthetic_missing_rate": 0.0
+        },
+        "relationship": {
+          "total_variation": 0.35143953934740885,
+          "coverage": 0.6666666666666666,
+          "rare_category_count": 0,
+          "rare_category_recall": null,
+          "synthetic_missing_rate": 0.0
+        },
+        "race": {
+          "total_variation": 0.13128598848368522,
+          "coverage": 0.4,
+          "rare_category_count": 1,
+          "rare_category_recall": 0.0,
+          "synthetic_missing_rate": 0.0
+        },
+        "sex": {
+          "total_variation": 0.3186180422264875,
+          "coverage": 1.0,
+          "rare_category_count": 0,
+          "rare_category_recall": null,
+          "synthetic_missing_rate": 0.0
+        },
+        "native-country": {
+          "total_variation": 0.07619961612284068,
+          "coverage": 0.25,
+          "rare_category_count": 37,
+          "rare_category_recall": 0.21621621621621623,
+          "synthetic_missing_rate": 0.0
+        }
+      },
+      "label_conditional": null
+    },
+    "privacy": {
+      "n_synthetic": 5210,
+      "n_reference": 20826,
+      "exact_duplicate_fraction_vs_reference": 0.0,
+      "exact_duplicate_count": 0,
+      "rounding": "integer fields, fnlwgt, and capital rounded to integers; other numerics to 4 decimals",
+      "does_not_guarantee_privacy": 1
+    },
+    "selection_detection": {
+      "protocol": "A_selection_cv",
+      "uses_final_test": 0,
+      "n_real": 5210,
+      "n_synthetic": 5210,
+      "fold_auc": [
+        0.9999976422128775,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "mean_auc": 0.9999994105532194,
+      "oriented_auc": 0.9999994105532194,
+      "n_estimators": 80,
+      "max_depth": 16,
+      "random_state": 42
+    }
+  },
+  {
+    "file": "gan_linear_seed68.pt",
+    "kind": "gan",
+    "seed": 68,
+    "output_activation": "linear",
+    "lr": 0.001,
+    "acceptable": 0,
+    "weights": "last_epoch_not_a_selected_model",
+    "selected_epoch_number": null,
+    "sample_seed": 42,
+    "split": "selection",
+    "n_selection": 5210,
+    "uses_final_test": 0,
+    "conditioning": null,
+    "real_selection_violation_total": 0,
+    "synthetic_hard_validity": {
+      "n_rows": 5210,
+      "missing_columns": [],
+      "violation_counts": {
+        "nonfinite_rows": 0,
+        "outside_reference_domain_rows": 4570,
+        "noninteger_discrete_rows": 5210,
+        "negative_capital_rows": 4568,
+        "invalid_category_rows": 0
+      },
+      "invalid_category_counts": {
+        "workclass": 0,
+        "marital-status": 0,
+        "occupation": 0,
+        "relationship": 0,
+        "race": 0,
+        "sex": 0,
+        "native-country": 0
+      },
+      "violation_total": 5210,
+      "row_violation_fraction": 1.0,
+      "valid": 0
+    },
+    "fidelity_summary": {
+      "numeric_ks_mean": 0.5640754958413307,
+      "numeric_wasserstein_over_std_mean": 0.4829451550099216,
+      "categorical_tv_mean": 0.4059775157663833,
+      "category_coverage_mean": 0.3785627071341357,
+      "rare_category_recall": 0.09302325581395349,
+      "rare_category_count": 43,
+      "correlation_mae": 0.31301226506058477,
+      "pairwise_categorical_tv_mean": 0.6207567863997807,
+      "synthetic_unique_fraction": 1.0,
+      "synthetic_duplicate_rate": 0.0,
+      "nearest_neighbor": {
+        "available": 1,
+        "subsample": 400,
+        "seed": 0,
+        "median_real_to_real": 2.437084008387874,
+        "median_synthetic_to_real": 1.04115526852517,
+        "ratio_synthetic_over_real": 0.4272135326241347,
+        "does_not_guarantee_privacy": 1
+      },
+      "numeric": {
+        "age": {
+          "ks": 0.5385796545105566,
+          "wasserstein": 11.036602119653914,
+          "wasserstein_over_std": 0.8168911577479592,
+          "mean_abs_diff_over_std": 0.7736904535739865,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 22.836228880621277,
+          "upper_quantile_abs_diff_over_std": 1.69025876321734
+        },
+        "fnlwgt": {
+          "ks": 0.3138195777351247,
+          "wasserstein": 59376.78639287234,
+          "wasserstein_over_std": 0.5532089159489489,
+          "mean_abs_diff_over_std": 0.37395949655788946,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 293097.4468272065,
+          "upper_quantile_abs_diff_over_std": 2.7307661912492387
+        },
+        "education-num": {
+          "ks": 0.4378119001919386,
+          "wasserstein": 1.1822568934037792,
+          "wasserstein_over_std": 0.4548055166706894,
+          "mean_abs_diff_over_std": 0.2279741797665156,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 1.6739871065373304,
+          "upper_quantile_abs_diff_over_std": 0.643970506864079
+        },
+        "capital-gain": {
+          "ks": 0.7781190019193858,
+          "wasserstein": 1060.3120653691524,
+          "wasserstein_over_std": 0.16672270672825634,
+          "mean_abs_diff_over_std": 0.1616857266091305,
+          "zero_rate_real": 0.9159309021113243,
+          "zero_rate_synthetic": 0.0,
+          "zero_rate_abs_diff": 0.9159309021113243,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 14238.189426360887,
+          "upper_quantile_abs_diff_over_std": 2.23880266725633
+        },
+        "capital-loss": {
+          "ks": 0.7420345489443378,
+          "wasserstein": 108.91654981672652,
+          "wasserstein_over_std": 0.2653806195389071,
+          "mean_abs_diff_over_std": 0.18210430300618294,
+          "zero_rate_real": 0.9518234165067179,
+          "zero_rate_synthetic": 0.00019193857965451057,
+          "zero_rate_abs_diff": 0.9516314779270634,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 1920.4060986663874,
+          "upper_quantile_abs_diff_over_std": 4.679165481168367
+        },
+        "hours-per-week": {
+          "ks": 0.574088291746641,
+          "wasserstein": 7.824098463418521,
+          "wasserstein_over_std": 0.6406620134247687,
+          "mean_abs_diff_over_std": 0.6406620134247688,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 27.161333822950674,
+          "upper_quantile_abs_diff_over_std": 2.2240562149969247
+        }
+      },
+      "categorical": {
+        "workclass": {
+          "total_variation": 0.29961612284069095,
+          "coverage": 0.1111111111111111,
+          "rare_category_count": 2,
+          "rare_category_recall": 0.0,
+          "synthetic_missing_rate": 0.0
+        },
+        "marital-status": {
+          "total_variation": 0.6397312859884836,
+          "coverage": 0.42857142857142855,
+          "rare_category_count": 1,
+          "rare_category_recall": 1.0,
+          "synthetic_missing_rate": 0.0
+        },
+        "occupation": {
+          "total_variation": 0.7781190019193858,
+          "coverage": 0.3333333333333333,
+          "rare_category_count": 2,
+          "rare_category_recall": 0.5,
+          "synthetic_missing_rate": 0.0
+        },
+        "relationship": {
+          "total_variation": 0.709404990403071,
+          "coverage": 0.5,
+          "rare_category_count": 0,
+          "rare_category_recall": null,
+          "synthetic_missing_rate": 0.0
+        },
+        "race": {
+          "total_variation": 0.14203454894433779,
+          "coverage": 0.2,
+          "rare_category_count": 2,
+          "rare_category_recall": 0.0,
+          "synthetic_missing_rate": 0.0
+        },
+        "sex": {
+          "total_variation": 0.1727447216890595,
+          "coverage": 1.0,
+          "rare_category_count": 0,
+          "rare_category_recall": null,
+          "synthetic_missing_rate": 0.0
+        },
+        "native-country": {
+          "total_variation": 0.1001919385796545,
+          "coverage": 0.07692307692307693,
+          "rare_category_count": 36,
+          "rare_category_recall": 0.05555555555555555,
+          "synthetic_missing_rate": 0.0
+        }
+      },
+      "label_conditional": null
+    },
+    "privacy": {
+      "n_synthetic": 5210,
+      "n_reference": 20827,
+      "exact_duplicate_fraction_vs_reference": 0.0,
+      "exact_duplicate_count": 0,
+      "rounding": "integer fields, fnlwgt, and capital rounded to integers; other numerics to 4 decimals",
+      "does_not_guarantee_privacy": 1
+    },
+    "selection_detection": {
+      "protocol": "A_selection_cv",
+      "uses_final_test": 0,
+      "n_real": 5210,
+      "n_synthetic": 5210,
+      "fold_auc": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "mean_auc": 1.0,
+      "oriented_auc": 1.0,
+      "n_estimators": 80,
+      "max_depth": 16,
+      "random_state": 42
+    }
+  },
+  {
+    "file": "gan_sigmoid_seed124.pt",
+    "kind": "gan",
+    "seed": 124,
+    "output_activation": "sigmoid",
+    "lr": 0.001,
+    "acceptable": 1,
+    "weights": "selected_epoch",
+    "selected_epoch_number": 20,
+    "sample_seed": 42,
+    "split": "selection",
+    "n_selection": 5210,
+    "uses_final_test": 0,
+    "conditioning": null,
+    "real_selection_violation_total": 0,
+    "synthetic_hard_validity": {
+      "n_rows": 5210,
+      "missing_columns": [],
+      "violation_counts": {
+        "nonfinite_rows": 0,
+        "outside_reference_domain_rows": 0,
+        "noninteger_discrete_rows": 5210,
+        "negative_capital_rows": 0,
+        "invalid_category_rows": 0
+      },
+      "invalid_category_counts": {
+        "workclass": 0,
+        "marital-status": 0,
+        "occupation": 0,
+        "relationship": 0,
+        "race": 0,
+        "sex": 0,
+        "native-country": 0
+      },
+      "violation_total": 5210,
+      "row_violation_fraction": 1.0,
+      "valid": 0
+    },
+    "fidelity_summary": {
+      "numeric_ks_mean": 0.49798464491362765,
+      "numeric_wasserstein_over_std_mean": 0.6092020724742947,
+      "categorical_tv_mean": 0.33575541540992593,
+      "category_coverage_mean": 0.3078798185941043,
+      "rare_category_recall": 0.0,
+      "rare_category_count": 43,
+      "correlation_mae": 0.26839260821167754,
+      "pairwise_categorical_tv_mean": 0.5336715108308199,
+      "synthetic_unique_fraction": 1.0,
+      "synthetic_duplicate_rate": 0.0,
+      "nearest_neighbor": {
+        "available": 1,
+        "subsample": 400,
+        "seed": 0,
+        "median_real_to_real": 2.5559563698065157,
+        "median_synthetic_to_real": 1.3129111342879893,
+        "ratio_synthetic_over_real": 0.5136672713968806,
+        "does_not_guarantee_privacy": 1
+      },
+      "numeric": {
+        "age": {
+          "ks": 0.24971209213051826,
+          "wasserstein": 5.288560576041643,
+          "wasserstein_over_std": 0.3889067518054528,
+          "mean_abs_diff_over_std": 0.11234816965038714,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 25.993456976711762,
+          "upper_quantile_abs_diff_over_std": 1.9114900502045715
+        },
+        "fnlwgt": {
+          "ks": 0.29309021113243766,
+          "wasserstein": 52436.332636068575,
+          "wasserstein_over_std": 0.5046562219635747,
+          "mean_abs_diff_over_std": 0.48021289665715466,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 219784.3364055758,
+          "upper_quantile_abs_diff_over_std": 2.1152419950306642
+        },
+        "education-num": {
+          "ks": 0.42360844529750485,
+          "wasserstein": 1.4770433496533681,
+          "wasserstein_over_std": 0.5829077651330263,
+          "mean_abs_diff_over_std": 0.4153707494117098,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 2.3659749269485495,
+          "upper_quantile_abs_diff_over_std": 0.9337201628862222
+        },
+        "capital-gain": {
+          "ks": 0.8128598848368522,
+          "wasserstein": 11277.92141224194,
+          "wasserstein_over_std": 1.5674438509313737,
+          "mean_abs_diff_over_std": 1.5674434451597845,
+          "zero_rate_real": 0.9147792706333974,
+          "zero_rate_synthetic": 0.6092130518234165,
+          "zero_rate_abs_diff": 0.3055662188099809,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 84965.53099195898,
+          "upper_quantile_abs_diff_over_std": 11.808798290605445
+        },
+        "capital-loss": {
+          "ks": 0.9543186180422265,
+          "wasserstein": 85.35574044200372,
+          "wasserstein_over_std": 0.21257944796802042,
+          "mean_abs_diff_over_std": 0.19582034430295828,
+          "zero_rate_real": 0.9543186180422265,
+          "zero_rate_synthetic": 0.14625719769673703,
+          "zero_rate_abs_diff": 0.8080614203454894,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 1893.9496800626814,
+          "upper_quantile_abs_diff_over_std": 4.716903343372629
+        },
+        "hours-per-week": {
+          "ks": 0.2543186180422265,
+          "wasserstein": 4.939267179108227,
+          "wasserstein_over_std": 0.39871839704432044,
+          "mean_abs_diff_over_std": 0.004616574281288578,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 29.420383527278908,
+          "upper_quantile_abs_diff_over_std": 2.3749369562437157
+        }
+      },
+      "categorical": {
+        "workclass": {
+          "total_variation": 0.29942418426103645,
+          "coverage": 0.1111111111111111,
+          "rare_category_count": 2,
+          "rare_category_recall": 0.0,
+          "synthetic_missing_rate": 0.0
+        },
+        "marital-status": {
+          "total_variation": 0.34299424184261035,
+          "coverage": 0.2857142857142857,
+          "rare_category_count": 1,
+          "rare_category_recall": 0.0,
+          "synthetic_missing_rate": 0.0
+        },
+        "occupation": {
+          "total_variation": 0.8372360844529749,
+          "coverage": 0.2,
+          "rare_category_count": 2,
+          "rare_category_recall": 0.0,
+          "synthetic_missing_rate": 0.0
+        },
+        "relationship": {
+          "total_variation": 0.37005758157389634,
+          "coverage": 0.3333333333333333,
+          "rare_category_count": 0,
+          "rare_category_recall": null,
+          "synthetic_missing_rate": 0.0
+        },
+        "race": {
+          "total_variation": 0.1489443378119002,
+          "coverage": 0.2,
+          "rare_category_count": 1,
+          "rare_category_recall": 0.0,
+          "synthetic_missing_rate": 0.0
+        },
+        "sex": {
+          "total_variation": 0.25355086372360847,
+          "coverage": 1.0,
+          "rare_category_count": 0,
+          "rare_category_recall": null,
+          "synthetic_missing_rate": 0.0
+        },
+        "native-country": {
+          "total_variation": 0.09808061420345492,
+          "coverage": 0.025,
+          "rare_category_count": 37,
+          "rare_category_recall": 0.0,
+          "synthetic_missing_rate": 0.0
+        }
+      },
+      "label_conditional": null
+    },
+    "privacy": {
+      "n_synthetic": 5210,
+      "n_reference": 20825,
+      "exact_duplicate_fraction_vs_reference": 0.0,
+      "exact_duplicate_count": 0,
+      "rounding": "integer fields, fnlwgt, and capital rounded to integers; other numerics to 4 decimals",
+      "does_not_guarantee_privacy": 1
+    },
+    "selection_detection": {
+      "protocol": "A_selection_cv",
+      "uses_final_test": 0,
+      "n_real": 5210,
+      "n_synthetic": 5210,
+      "fold_auc": [
+        1.0,
+        1.0,
+        1.0,
+        0.9999994105532193
+      ],
+      "mean_auc": 0.9999998526383048,
+      "oriented_auc": 0.9999998526383048,
+      "n_estimators": 80,
+      "max_depth": 16,
+      "random_state": 42
+    }
+  },
+  {
+    "file": "gan_sigmoid_seed42.pt",
+    "kind": "gan",
+    "seed": 42,
+    "output_activation": "sigmoid",
+    "lr": 0.001,
+    "acceptable": 1,
+    "weights": "selected_epoch",
+    "selected_epoch_number": 110,
+    "sample_seed": 42,
+    "split": "selection",
+    "n_selection": 5210,
+    "uses_final_test": 0,
+    "conditioning": null,
+    "real_selection_violation_total": 0,
+    "synthetic_hard_validity": {
+      "n_rows": 5210,
+      "missing_columns": [],
+      "violation_counts": {
+        "nonfinite_rows": 0,
+        "outside_reference_domain_rows": 0,
+        "noninteger_discrete_rows": 5210,
+        "negative_capital_rows": 0,
+        "invalid_category_rows": 0
+      },
+      "invalid_category_counts": {
+        "workclass": 0,
+        "marital-status": 0,
+        "occupation": 0,
+        "relationship": 0,
+        "race": 0,
+        "sex": 0,
+        "native-country": 0
+      },
+      "violation_total": 5210,
+      "row_violation_fraction": 1.0,
+      "valid": 0
+    },
+    "fidelity_summary": {
+      "numeric_ks_mean": 0.4726487523992322,
+      "numeric_wasserstein_over_std_mean": 0.36437385457986804,
+      "categorical_tv_mean": 0.31420345489443374,
+      "category_coverage_mean": 0.3543650793650794,
+      "rare_category_recall": 0.0,
+      "rare_category_count": 42,
+      "correlation_mae": 0.20633721946334918,
+      "pairwise_categorical_tv_mean": 0.4936477470066722,
+      "synthetic_unique_fraction": 1.0,
+      "synthetic_duplicate_rate": 0.0,
+      "nearest_neighbor": {
+        "available": 1,
+        "subsample": 400,
+        "seed": 0,
+        "median_real_to_real": 3.2487469209273288,
+        "median_synthetic_to_real": 1.0441309057167532,
+        "ratio_synthetic_over_real": 0.3213949658530848,
+        "does_not_guarantee_privacy": 1
+      },
+      "numeric": {
+        "age": {
+          "ks": 0.17754318618042228,
+          "wasserstein": 4.602125234270694,
+          "wasserstein_over_std": 0.3323539631963404,
+          "mean_abs_diff_over_std": 0.033339503169518475,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 19.384224822521233,
+          "upper_quantile_abs_diff_over_std": 1.3998801891089239
+        },
+        "fnlwgt": {
+          "ks": 0.19193857965451055,
+          "wasserstein": 38305.89772980175,
+          "wasserstein_over_std": 0.35739605943136965,
+          "mean_abs_diff_over_std": 0.33185771108831624,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 260507.76713124482,
+          "upper_quantile_abs_diff_over_std": 2.430551297366857
+        },
+        "education-num": {
+          "ks": 0.35412667946257204,
+          "wasserstein": 1.4890184199469676,
+          "wasserstein_over_std": 0.5748953124095844,
+          "mean_abs_diff_over_std": 0.4169448359343356,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 4.527393221855165,
+          "upper_quantile_abs_diff_over_std": 1.7479818287084452
+        },
+        "capital-gain": {
+          "ks": 0.9134357005758157,
+          "wasserstein": 1049.4082909644012,
+          "wasserstein_over_std": 0.14843009995026654,
+          "mean_abs_diff_over_std": 0.016254074360903013,
+          "zero_rate_real": 0.9134357005758157,
+          "zero_rate_synthetic": 0.20518234165067178,
+          "zero_rate_abs_diff": 0.7082533589251438,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 3556.684704503865,
+          "upper_quantile_abs_diff_over_std": 0.5030635556499538
+        },
+        "capital-loss": {
+          "ks": 0.6527831094049903,
+          "wasserstein": 87.692841837345,
+          "wasserstein_over_std": 0.21815987825000602,
+          "mean_abs_diff_over_std": 0.21815986752475464,
+          "zero_rate_real": 0.9525911708253358,
+          "zero_rate_synthetic": 0.9796545105566219,
+          "zero_rate_abs_diff": 0.02706333973128605,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 2000.9579316081808,
+          "upper_quantile_abs_diff_over_std": 4.977928980254849
+        },
+        "hours-per-week": {
+          "ks": 0.5460652591170825,
+          "wasserstein": 6.842732301760186,
+          "wasserstein_over_std": 0.5550078142416413,
+          "mean_abs_diff_over_std": 0.4941532540709657,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 12.473112174272558,
+          "upper_quantile_abs_diff_over_std": 1.011682821912099
+        }
+      },
+      "categorical": {
+        "workclass": {
+          "total_variation": 0.22821497120921302,
+          "coverage": 0.2222222222222222,
+          "rare_category_count": 2,
+          "rare_category_recall": 0.0,
+          "synthetic_missing_rate": 0.0
+        },
+        "marital-status": {
+          "total_variation": 0.40307101727447214,
+          "coverage": 0.2857142857142857,
+          "rare_category_count": 1,
+          "rare_category_recall": 0.0,
+          "synthetic_missing_rate": 0.0
+        },
+        "occupation": {
+          "total_variation": 0.6284069097888676,
+          "coverage": 0.21428571428571427,
+          "rare_category_count": 1,
+          "rare_category_recall": 0.0,
+          "synthetic_missing_rate": 0.0
+        },
+        "relationship": {
+          "total_variation": 0.45873320537428025,
+          "coverage": 0.3333333333333333,
+          "rare_category_count": 0,
+          "rare_category_recall": null,
+          "synthetic_missing_rate": 0.0
+        },
+        "race": {
+          "total_variation": 0.12053742802303266,
+          "coverage": 0.4,
+          "rare_category_count": 1,
+          "rare_category_recall": 0.0,
+          "synthetic_missing_rate": 0.0
+        },
+        "sex": {
+          "total_variation": 0.25201535508637235,
+          "coverage": 1.0,
+          "rare_category_count": 0,
+          "rare_category_recall": null,
+          "synthetic_missing_rate": 0.0
+        },
+        "native-country": {
+          "total_variation": 0.10844529750479846,
+          "coverage": 0.025,
+          "rare_category_count": 37,
+          "rare_category_recall": 0.0,
+          "synthetic_missing_rate": 0.0
+        }
+      },
+      "label_conditional": null
+    },
+    "privacy": {
+      "n_synthetic": 5210,
+      "n_reference": 20826,
+      "exact_duplicate_fraction_vs_reference": 0.0,
+      "exact_duplicate_count": 0,
+      "rounding": "integer fields, fnlwgt, and capital rounded to integers; other numerics to 4 decimals",
+      "does_not_guarantee_privacy": 1
+    },
+    "selection_detection": {
+      "protocol": "A_selection_cv",
+      "uses_final_test": 0,
+      "n_real": 5210,
+      "n_synthetic": 5210,
+      "fold_auc": [
+        0.9999946949789744,
+        0.9999946949789744,
+        0.9999964633193164,
+        0.9999970527660969
+      ],
+      "mean_auc": 0.9999957265108406,
+      "oriented_auc": 0.9999957265108406,
+      "n_estimators": 80,
+      "max_depth": 16,
+      "random_state": 42
+    }
+  },
+  {
+    "file": "gan_sigmoid_seed68.pt",
+    "kind": "gan",
+    "seed": 68,
+    "output_activation": "sigmoid",
+    "lr": 0.001,
+    "acceptable": 1,
+    "weights": "selected_epoch",
+    "selected_epoch_number": 90,
+    "sample_seed": 42,
+    "split": "selection",
+    "n_selection": 5210,
+    "uses_final_test": 0,
+    "conditioning": null,
+    "real_selection_violation_total": 0,
+    "synthetic_hard_validity": {
+      "n_rows": 5210,
+      "missing_columns": [],
+      "violation_counts": {
+        "nonfinite_rows": 0,
+        "outside_reference_domain_rows": 0,
+        "noninteger_discrete_rows": 5210,
+        "negative_capital_rows": 0,
+        "invalid_category_rows": 0
+      },
+      "invalid_category_counts": {
+        "workclass": 0,
+        "marital-status": 0,
+        "occupation": 0,
+        "relationship": 0,
+        "race": 0,
+        "sex": 0,
+        "native-country": 0
+      },
+      "violation_total": 5210,
+      "row_violation_fraction": 1.0,
+      "valid": 0
+    },
+    "fidelity_summary": {
+      "numeric_ks_mean": 0.580038387715931,
+      "numeric_wasserstein_over_std_mean": 0.5534875682811643,
+      "categorical_tv_mean": 0.37589799835481214,
+      "category_coverage_mean": 0.23457177742892027,
+      "rare_category_recall": 0.023255813953488372,
+      "rare_category_count": 43,
+      "correlation_mae": 0.16665139680080515,
+      "pairwise_categorical_tv_mean": 0.5853486884197057,
+      "synthetic_unique_fraction": 1.0,
+      "synthetic_duplicate_rate": 0.0,
+      "nearest_neighbor": {
+        "available": 1,
+        "subsample": 400,
+        "seed": 0,
+        "median_real_to_real": 2.437083855418527,
+        "median_synthetic_to_real": 0.9669249444764579,
+        "ratio_synthetic_over_real": 0.39675489307708095,
+        "does_not_guarantee_privacy": 1
+      },
+      "numeric": {
+        "age": {
+          "ks": 0.5504798464491363,
+          "wasserstein": 11.362760715146557,
+          "wasserstein_over_std": 0.8410322939282734,
+          "mean_abs_diff_over_std": 0.7961507660721511,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 6.363494852781315,
+          "upper_quantile_abs_diff_over_std": 0.4710039054418652
+        },
+        "fnlwgt": {
+          "ks": 0.35355086372360844,
+          "wasserstein": 61390.95569186132,
+          "wasserstein_over_std": 0.5719747745325339,
+          "mean_abs_diff_over_std": 0.5068236576906114,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 304849.32858790806,
+          "upper_quantile_abs_diff_over_std": 2.840257559446643
+        },
+        "education-num": {
+          "ks": 0.3462571976967371,
+          "wasserstein": 1.071571315890768,
+          "wasserstein_over_std": 0.4122255997926212,
+          "mean_abs_diff_over_std": 0.10125762505256984,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 2.791441744565965,
+          "upper_quantile_abs_diff_over_std": 1.0738470975992085
+        },
+        "capital-gain": {
+          "ks": 0.9159309021113243,
+          "wasserstein": 4563.221900846662,
+          "wasserstein_over_std": 0.7175177171365672,
+          "mean_abs_diff_over_std": 0.6678422229003937,
+          "zero_rate_real": 0.9159309021113243,
+          "zero_rate_synthetic": 0.0,
+          "zero_rate_abs_diff": 0.9159309021113243,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 18952.3988833013,
+          "upper_quantile_abs_diff_over_std": 2.98006151716726
+        },
+        "capital-loss": {
+          "ks": 0.618042226487524,
+          "wasserstein": 36.22040382980532,
+          "wasserstein_over_std": 0.08825282485133648,
+          "mean_abs_diff_over_std": 0.07475472987797153,
+          "zero_rate_real": 0.9518234165067179,
+          "zero_rate_synthetic": 0.8761996161228407,
+          "zero_rate_abs_diff": 0.07562380038387717,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 35.353658180236835,
+          "upper_quantile_abs_diff_over_std": 0.08614095574127757
+        },
+        "hours-per-week": {
+          "ks": 0.6959692898272553,
+          "wasserstein": 8.42568951809525,
+          "wasserstein_over_std": 0.6899221994456541,
+          "mean_abs_diff_over_std": 0.5247394554811983,
+          "upper_quantile": 0.99,
+          "upper_quantile_abs_diff": 19.681476981639868,
+          "upper_quantile_abs_diff_over_std": 1.6115818009137433
+        }
+      },
+      "categorical": {
+        "workclass": {
+          "total_variation": 0.22514395393474085,
+          "coverage": 0.2222222222222222,
+          "rare_category_count": 2,
+          "rare_category_recall": 0.0,
+          "synthetic_missing_rate": 0.0
+        },
+        "marital-status": {
+          "total_variation": 0.5389635316698657,
+          "coverage": 0.14285714285714285,
+          "rare_category_count": 1,
+          "rare_category_recall": 0.0,
+          "synthetic_missing_rate": 0.0
+        },
+        "occupation": {
+          "total_variation": 0.7464491362763914,
+          "coverage": 0.13333333333333333,
+          "rare_category_count": 2,
+          "rare_category_recall": 0.0,
+          "synthetic_missing_rate": 0.0
+        },
+        "relationship": {
+          "total_variation": 0.5927063339731287,
+          "coverage": 0.16666666666666666,
+          "rare_category_count": 0,
+          "rare_category_recall": null,
+          "synthetic_missing_rate": 0.0
+        },
+        "race": {
+          "total_variation": 0.10345489443378114,
+          "coverage": 0.4,
+          "rare_category_count": 2,
+          "rare_category_recall": 0.0,
+          "synthetic_missing_rate": 0.0
+        },
+        "sex": {
+          "total_variation": 0.32437619961612285,
+          "coverage": 0.5,
+          "rare_category_count": 0,
+          "rare_category_recall": null,
+          "synthetic_missing_rate": 0.0
+        },
+        "native-country": {
+          "total_variation": 0.10019193857965447,
+          "coverage": 0.07692307692307693,
+          "rare_category_count": 36,
+          "rare_category_recall": 0.027777777777777776,
+          "synthetic_missing_rate": 0.0
+        }
+      },
+      "label_conditional": null
+    },
+    "privacy": {
+      "n_synthetic": 5210,
+      "n_reference": 20827,
+      "exact_duplicate_fraction_vs_reference": 0.0,
+      "exact_duplicate_count": 0,
+      "rounding": "integer fields, fnlwgt, and capital rounded to integers; other numerics to 4 decimals",
+      "does_not_guarantee_privacy": 1
+    },
+    "selection_detection": {
+      "protocol": "A_selection_cv",
+      "uses_final_test": 0,
+      "n_real": 5210,
+      "n_synthetic": 5210,
+      "fold_auc": [
+        0.9999888005111682,
+        0.9999911582982908,
+        0.9999982316596581,
+        0.9999982316596581
+      ],
+      "mean_auc": 0.9999941055321939,
+      "oriented_auc": 0.9999941055321939,
+      "n_estimators": 80,
+      "max_depth": 16,
+      "random_state": 42
+    }
+  }
+]

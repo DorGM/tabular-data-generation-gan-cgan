@@ -1,0 +1,128 @@
+{
+  "version": 1,
+  "domain": "decoded original-domain Adult rows; scaled matrices are not compared",
+  "tolerances": {
+    "integer_atol": 0.0001,
+    "nonnegative_atol": 0.01,
+    "domain_atol": {
+      "age": 0.0001,
+      "fnlwgt": 1.0,
+      "education-num": 0.0001,
+      "capital-gain": 0.01,
+      "capital-loss": 0.01,
+      "hours-per-week": 0.0001
+    },
+    "provenance": "Fixed from real-row inverse-transform error before generator scoring."
+  },
+  "research_targets": {
+    "hard_validity_violations": 0,
+    "protocol_b_detection_auc": 0.75,
+    "utility_ratio": 0.95,
+    "note": "Planning goals, not a claim that a model met them. A success statement needs all three. An unconditional generator has no utility ratio."
+  },
+  "metrics": {
+    "hard_validity.violation_total": {
+      "direction": "lower",
+      "target": 0,
+      "split": "the rows being judged"
+    },
+    "numeric.ks": {
+      "direction": "lower",
+      "range": [
+        0,
+        1
+      ]
+    },
+    "numeric.wasserstein_over_std": {
+      "direction": "lower"
+    },
+    "numeric.zero_rate_abs_diff": {
+      "direction": "lower",
+      "columns": [
+        "capital-gain",
+        "capital-loss"
+      ]
+    },
+    "numeric.upper_quantile_abs_diff": {
+      "direction": "lower",
+      "quantile": 0.99
+    },
+    "categorical.total_variation": {
+      "direction": "lower",
+      "range": [
+        0,
+        1
+      ]
+    },
+    "category_coverage_mean": {
+      "direction": "higher",
+      "range": [
+        0,
+        1
+      ]
+    },
+    "rare_category_recall": {
+      "direction": "higher",
+      "rare_below": 0.01
+    },
+    "correlation_mae": {
+      "direction": "lower"
+    },
+    "pairwise_categorical_tv_mean": {
+      "direction": "lower"
+    },
+    "synthetic_duplicate_rate": {
+      "direction": "lower"
+    },
+    "exact_duplicate_fraction_vs_reference": {
+      "direction": "lower_is_less_copying",
+      "privacy": "proxy only; does not guarantee privacy"
+    },
+    "nearest_neighbor.ratio_synthetic_over_real": {
+      "direction": "near_1_less_suspicious_than_much_below_1",
+      "subsample": 400,
+      "seed": 0,
+      "privacy": "proxy only; does not guarantee privacy"
+    },
+    "selection_detection.mean_auc": {
+      "direction": "lower_is_harder_to_distinguish",
+      "chance": 0.5,
+      "protocol": {
+        "protocol": "A_selection_cv",
+        "n_splits": 4,
+        "n_estimators": 80,
+        "max_depth": 16,
+        "random_state": 42
+      },
+      "split": "paired real selection rows and synthetic rows; not the final test"
+    },
+    "final_detection.mean_auc": {
+      "direction": "lower_is_harder_to_distinguish",
+      "chance": 0.5,
+      "target": 0.75,
+      "protocol": {
+        "protocol": "B_development_fit_heldout_score",
+        "n_estimators": 200,
+        "random_state": 124
+      },
+      "split": "fit on development real+synthetic only; score untouched real test plus a fresh synthetic draw",
+      "selection_use": "forbidden"
+    },
+    "utility.auc_real": {
+      "direction": "higher",
+      "split": "train on real fit; score on real test"
+    },
+    "utility.auc_synthetic": {
+      "direction": "higher",
+      "split": "train on an equal-sized synthetic draw; score on the same real test"
+    },
+    "utility.ratio": {
+      "direction": "higher",
+      "target": 0.95
+    },
+    "oriented_auc": {
+      "definition": "max(auc, 1-auc)",
+      "use": "report beside the raw AUC so a flipped label cannot look like indistinguishability"
+    }
+  }
+}

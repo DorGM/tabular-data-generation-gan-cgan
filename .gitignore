@@ -1,0 +1,16 @@
+# Adult dataset (download from UCI). Not committed.
+data/
+adult.arff
+*.arff
+
+# Environments, caches, checkpoints
+.venv/
+venv/
+.env
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+*.pt
+*.pth
+checkpoints/
+artifacts/

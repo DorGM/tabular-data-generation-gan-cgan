@@ -1,0 +1,33 @@
+{
+  "git": {
+    "is_repository": false,
+    "head": null,
+    "note": "The workspace had no .git directory on 2026-10-14. No commit was created."
+  },
+  "pre_edit_sha256": {
+    "main.py": "deeeb8ec18eca6f042711a46f1b5937c957f7491c41d960003187aee0e07d4c3",
+    "README.md": "4f196ead8e8f8e596940fe3c84c8dc027780c7d2ec5d80756ddcdea9e83b620d",
+    "experiments.ipynb": "05f384605add068ccebc35872540476d9657c070ff231bf284ac6ea984ef5d1f",
+    "requirements.txt": "10b73193e300fb0d81de852edd150a944a7741b120baee070179de3299e2bde6",
+    ".gitignore": "2bf5052732638894520af1b1637e47d866c4a05334c83099117766f9bbcc21fe",
+    "data/adult.arff": "504fd9dc0a28d56b20ad0ef5d54f488570c9523f6e3f26d79c1093bc199cc940"
+  },
+  "main_py_after_stage0_sha256": "deeeb8ec18eca6f042711a46f1b5937c957f7491c41d960003187aee0e07d4c3",
+  "config_fingerprints_sha256": {
+    "primary_sigmoid_lr_1e-3": "9d0345462e1c812bebcc85f6e133249020ed7a62dfe39c601a41a4bb162912c8",
+    "primary_linear_lr_1e-3": "533337c897108c7711ae77a2aa5d2f5cca8869f551ecd6e1c77c5af367ead5ec",
+    "followup_sigmoid_lr_1e-4": "1fce04d183811320fc514a67e3573750a324c78096f9ede38560163ed5782ae4",
+    "followup_linear_lr_1e-4": "20806b515e33f75c63cc59f4104cc0d4ec7589751bc9f0cec667dce7cf75e398"
+  },
+  "environment_read_on_2026-10-14": {
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.13.2",
+    "numpy": "2.3.0",
+    "pandas": "2.3.0",
+    "scipy": "1.15.3",
+    "sklearn": "1.7.0",
+    "torch": "2.14.1+cpu",
+    "matplotlib": "3.10.3",
+    "cuda": false
+  }
+}

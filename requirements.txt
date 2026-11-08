@@ -1,0 +1,7 @@
+# Versions used for the published runs. PyTorch is the existing CPU wheel; do not replace it with a CUDA build.
+numpy==2.3.0
+pandas==2.3.0
+scipy==1.15.3
+scikit-learn==1.7.0
+torch==2.14.1+cpu
+matplotlib==3.10.3
