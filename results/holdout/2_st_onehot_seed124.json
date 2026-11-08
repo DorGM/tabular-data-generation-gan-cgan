@@ -1,0 +1,25 @@
+{
+  "model": "2_st_onehot",
+  "seed": 124,
+  "n_holdout": 16281,
+  "detection_auc_rf": 0.9401443166760166,
+  "detection_auc_gb": 0.9612210030053047,
+  "utility_ratio": 0.878324547474947,
+  "utility_auc_real": 0.9015103185550825,
+  "utility_auc_synthetic": 0.7918186425888881,
+  "ks": 0.14512826812439858,
+  "tv": 0.08235717356778717,
+  "coverage": 0.8765333775786737,
+  "hard_violations": 0,
+  "rule_violations": {
+    "spouse_sex": 6,
+    "spouse_married": 21,
+    "missing_link": 1
+  },
+  "rule_violation_share": 0.001658374792703151,
+  "rejected_share": null,
+  "dcr_fit_median": 0.7952374322460096,
+  "dcr_holdout_median": 0.7789422925019285,
+  "closer_to_fit_share": 0.4776,
+  "exact_copy_share": 0.0
+}

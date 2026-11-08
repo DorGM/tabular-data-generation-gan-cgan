@@ -17,3 +17,4 @@ artifacts/
 
 results/ladder/*.log
 models/
+results/holdout/*.log

@@ -1,0 +1,25 @@
+{
+  "model": "sdv_tvae",
+  "seed": 68,
+  "n_holdout": 16281,
+  "detection_auc_rf": 0.9274132125698975,
+  "detection_auc_gb": 0.9449285185939325,
+  "utility_ratio": 0.9561533839785569,
+  "utility_auc_real": 0.9010565915197927,
+  "utility_auc_synthetic": 0.861548309137834,
+  "ks": 0.13921135065413673,
+  "tv": 0.07331069520124246,
+  "coverage": 0.7970576848625629,
+  "hard_violations": 0,
+  "rule_violations": {
+    "spouse_sex": 99,
+    "spouse_married": 72,
+    "missing_link": 212
+  },
+  "rule_violation_share": 0.02321724709784411,
+  "rejected_share": null,
+  "dcr_fit_median": 0.6511659367306631,
+  "dcr_holdout_median": 0.6441294011132488,
+  "closer_to_fit_share": 0.4898,
+  "exact_copy_share": 0.0
+}

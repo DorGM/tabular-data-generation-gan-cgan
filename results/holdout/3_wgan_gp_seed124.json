@@ -1,0 +1,25 @@
+{
+  "model": "3_wgan_gp",
+  "seed": 124,
+  "n_holdout": 16281,
+  "detection_auc_rf": 0.9416312751059895,
+  "detection_auc_gb": 0.9634149570235271,
+  "utility_ratio": 0.954066161595779,
+  "utility_auc_real": 0.9015103185550825,
+  "utility_auc_synthetic": 0.8601004892628354,
+  "ks": 0.11686423847838993,
+  "tv": 0.02200637026507673,
+  "coverage": 0.9482771970576849,
+  "hard_violations": 0,
+  "rule_violations": {
+    "spouse_sex": 690,
+    "spouse_married": 396,
+    "missing_link": 593
+  },
+  "rule_violation_share": 0.09759842761501136,
+  "rejected_share": null,
+  "dcr_fit_median": 1.2785566821575962,
+  "dcr_holdout_median": 1.2918853517551108,
+  "closer_to_fit_share": 0.4881,
+  "exact_copy_share": 0.0
+}

@@ -12,6 +12,12 @@ change can be measured on its own:
   3 wgan_gp     Wasserstein loss with gradient penalty, 5 critic steps, PacGAN
   4 ctgan_norm  mode-specific normalization (Bayesian GMM) for continuous
                 columns and training-by-sampling of categorical conditions
+  5 rules       domain consistency rules (relationship / sex / marital status,
+                and the two linked missing-value fields) as a loss penalty,
+                plus rejection of rule-breaking rows at sampling time
+
+A sixth variant, rung 5 plus snapping capital values to common real values, is
+post-processing only and lives in evaluate_holdout.py.
 
 Model selection uses the selection slice only (protocol A). The test split is
 scored once per run, after selection (protocol B detection and TSTR utility).
@@ -67,6 +73,31 @@ RUNGS["2_st_onehot"] = dict(RUNGS["1_sampling"], cat_train="gumbel_st")
 RUNGS["3_wgan_gp"] = dict(RUNGS["2_st_onehot"], loss="wgangp", critic_steps=5, pac=10, batch_size=500,
                           lr=2e-4, betas=(0.5, 0.9), hidden_dim=256, epochs=300, score_every=25)
 RUNGS["4_ctgan_norm"] = dict(RUNGS["3_wgan_gp"], norm="gmm", tbs=True)
+RUNGS["5_rules"] = dict(RUNGS["4_ctgan_norm"], rule_weight=1.0, reject=True)
+
+# Domain rules. They come from what the fields mean, not from fitted numbers:
+# a husband is a married man, a wife is a married woman, and occupation is
+# missing exactly when the person has no job to describe (workclass missing or
+# never worked). In all 48,842 Adult rows the second and third rules have no
+# exceptions and the first has 4 (recording errors).
+MARRIED = ("Married-civ-spouse", "Married-AF-spouse")
+NO_OCCUPATION = ("?", "Never-worked")
+
+
+def rule_violations(frame):
+    """Boolean mask of rows that break a domain rule, plus counts per rule."""
+    rel, sex = frame["relationship"].astype(str), frame["sex"].astype(str)
+    marital = frame["marital-status"].astype(str)
+    workclass, occupation = frame["workclass"].astype(str), frame["occupation"].astype(str)
+    rules = {
+        "spouse_sex": ((rel == "Husband") & (sex != "Male")) | ((rel == "Wife") & (sex != "Female")),
+        "spouse_married": rel.isin(["Husband", "Wife"]) & ~marital.isin(MARRIED),
+        "missing_link": (occupation == "?") != workclass.isin(NO_OCCUPATION),
+    }
+    mask = np.zeros(len(frame), dtype=bool)
+    for value in rules.values():
+        mask |= value.to_numpy()
+    return mask, {name: int(value.sum()) for name, value in rules.items()}
 
 
 # ---------------------------------------------------------------- data ----
@@ -362,9 +393,27 @@ def gradient_penalty(critic, real, fake, cond, pac):
     return ((grad.norm(2, dim=1) - 1) ** 2).mean()
 
 
+def rule_penalty(raw, transformer):
+    """Expected number of broken rules per row, from the generator's category probabilities."""
+    probs, start = {}, 0
+    for kind, width, name in transformer.spans:
+        if kind == "cat" and name in CATEGORICAL:
+            probs[name] = torch.softmax(raw[:, start:start + width], 1)
+        start += width
+    level = lambda column, value: probs[column][:, transformer.levels[column].index(value)]
+    husband, wife = level("relationship", "Husband"), level("relationship", "Wife")
+    married = sum(level("marital-status", m) for m in MARRIED if m in transformer.levels["marital-status"])
+    no_job = sum(level("workclass", w) for w in NO_OCCUPATION if w in transformer.levels["workclass"])
+    occ_missing = level("occupation", "?")
+    penalty = husband * level("sex", "Female") + wife * level("sex", "Male")
+    penalty = penalty + (husband + wife) * (1 - married)
+    penalty = penalty + occ_missing * (1 - no_job) + (1 - occ_missing) * no_job
+    return penalty.mean()
+
+
 # ------------------------------------------------------------ training ----
 
-def generate(generator, transformer, conditioner, labels, seed):
+def _draw(generator, transformer, conditioner, labels, seed):
     torch.manual_seed(seed)
     rng = np.random.default_rng(seed)
     generator.eval()
@@ -372,7 +421,33 @@ def generate(generator, transformer, conditioner, labels, seed):
     noise = torch.randn(len(labels), generator.config["latent_dim"])
     probs = generator.probabilities(noise, cond).numpy()
     generator.train()
-    frame = transformer.inverse(probs, rng)
+    return transformer.inverse(probs, rng)
+
+
+def generate(generator, transformer, conditioner, labels, seed, reject=None, stats=None):
+    """Synthetic rows for the given income labels.
+
+    With rejection on (the rung's config, or reject=True), rows that break a
+    domain rule are redrawn for the same label, up to 50 rounds. The share of
+    redrawn rows is written to stats["rejected_share"] when stats is a dict.
+    """
+    labels = np.asarray(labels, dtype=int)
+    frame = _draw(generator, transformer, conditioner, labels, seed)
+    reject = generator.config.get("reject", False) if reject is None else reject
+    if not reject:
+        return frame
+    bad, _counts = rule_violations(frame)
+    first_bad = int(bad.sum())
+    for round_ in range(1, 51):
+        if not bad.any():
+            break
+        index = np.flatnonzero(bad)
+        redraw = _draw(generator, transformer, conditioner, labels[index], seed + 100003 * round_)
+        frame.iloc[index] = redraw.to_numpy()
+        bad[index] = rule_violations(redraw)[0]
+    if stats is not None:
+        stats["rejected_share"] = first_bad / max(len(frame), 1)
+        stats["still_broken"] = int(bad.sum())
     return frame
 
 
@@ -432,6 +507,8 @@ def train_rung(rung, config, seed, fit, select, test, schema, log):
             fake, raw = generator(noise, fake_cond, config["temperature"])
             d_fake = critic(fake, fake_cond)
             loss_g = -d_fake.mean() if config["loss"] == "wgangp" else bce(d_fake, torch.ones_like(d_fake))
+            if config.get("rule_weight"):
+                loss_g = loss_g + config["rule_weight"] * rule_penalty(raw, transformer)
             if config["tbs"]:
                 targets = torch.tensor([k for _s, _w, k in masks])
                 ce = torch.stack([F.cross_entropy(raw[i:i + 1, s:s + w], targets[i:i + 1])
@@ -482,8 +559,11 @@ def train_rung(rung, config, seed, fit, select, test, schema, log):
     }
 
 
-def load_generator(path):
-    """Rebuild a saved generator. Returns a function: income labels -> synthetic frame."""
+def load_generator(path, reject=None):
+    """Rebuild a saved generator. Returns a function: income labels -> synthetic frame.
+
+    reject=None keeps the rung's own setting; True or False overrides it.
+    """
     saved = torch.load(path, map_location="cpu", weights_only=False)
     conditioner = Conditioner.__new__(Conditioner)
     conditioner.__dict__.update(saved["conditioner"])
@@ -491,8 +571,9 @@ def load_generator(path):
     generator = Generator(saved["transformer"], saved["config"], conditioner.dim)
     generator.load_state_dict(saved["generator_state"])
 
-    def sample(labels, seed=0):
-        frame = generate(generator, saved["transformer"], conditioner, np.asarray(labels, dtype=int), seed)
+    def sample(labels, seed=0, stats=None):
+        frame = generate(generator, saved["transformer"], conditioner, np.asarray(labels, dtype=int), seed,
+                         reject=reject, stats=stats)
         frame["income"] = np.asarray(labels, dtype=int)
         return frame
 

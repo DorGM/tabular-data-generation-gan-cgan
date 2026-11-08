@@ -1,0 +1,25 @@
+{
+  "model": "4_ctgan_norm+reject",
+  "seed": 68,
+  "n_holdout": 16281,
+  "detection_auc_rf": 0.775474392685361,
+  "detection_auc_gb": 0.8305083897892533,
+  "utility_ratio": 0.9638308881917951,
+  "utility_auc_real": 0.9010565915197927,
+  "utility_auc_synthetic": 0.8684661749155933,
+  "ks": 0.030321642814732902,
+  "tv": 0.031930295611887656,
+  "coverage": 1.0,
+  "hard_violations": 0,
+  "rule_violations": {
+    "spouse_sex": 0,
+    "spouse_married": 0,
+    "missing_link": 0
+  },
+  "rule_violation_share": 0.0,
+  "rejected_share": 0.05878017320803391,
+  "dcr_fit_median": 1.2467076078490709,
+  "dcr_holdout_median": 1.2405657762052797,
+  "closer_to_fit_share": 0.488,
+  "exact_copy_share": 0.0
+}

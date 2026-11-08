@@ -1,0 +1,25 @@
+{
+  "model": "sdv_gaussian_copula",
+  "seed": 68,
+  "n_holdout": 16281,
+  "detection_auc_rf": 0.998041337692966,
+  "detection_auc_gb": 0.9986280221015987,
+  "utility_ratio": 0.8985663938008737,
+  "utility_auc_real": 0.9010565915197927,
+  "utility_auc_synthetic": 0.809659172052447,
+  "ks": 0.33336404397764263,
+  "tv": 0.011187448998394278,
+  "coverage": 0.9841269841269842,
+  "hard_violations": 0,
+  "rule_violations": {
+    "spouse_sex": 1564,
+    "spouse_married": 3137,
+    "missing_link": 1689
+  },
+  "rule_violation_share": 0.3168724279835391,
+  "rejected_share": null,
+  "dcr_fit_median": 4.954641577090092,
+  "dcr_holdout_median": 4.8817872007702805,
+  "closer_to_fit_share": 0.4775,
+  "exact_copy_share": 0.0
+}

@@ -18,6 +18,7 @@ LABELS = {
     "2_st_onehot": "2 + Straight-through one-hots",
     "3_wgan_gp": "3 + WGAN-GP and PacGAN",
     "4_ctgan_norm": "4 + Mode-specific normalization, training-by-sampling",
+    "5_rules": "5 + Domain-rule loss penalty and rule filter",
     "sdv_gaussian_copula": "SDV Gaussian copula",
     "sdv_tvae": "SDV TVAE",
     "sdv_ctgan": "SDV CTGAN",

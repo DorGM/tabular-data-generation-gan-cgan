@@ -1,0 +1,25 @@
+{
+  "model": "0_baseline",
+  "seed": 124,
+  "n_holdout": 16281,
+  "detection_auc_rf": 1.0,
+  "detection_auc_gb": 1.0,
+  "utility_ratio": 0.6044426453690779,
+  "utility_auc_real": 0.9015103185550825,
+  "utility_auc_synthetic": 0.5449112817749542,
+  "ks": 0.8997399832115144,
+  "tv": 0.7952301982152729,
+  "coverage": 0.1730988330291466,
+  "hard_violations": 0,
+  "rule_violations": {
+    "spouse_sex": 0,
+    "spouse_married": 16281,
+    "missing_link": 16281
+  },
+  "rule_violation_share": 1.0,
+  "rejected_share": null,
+  "dcr_fit_median": 12.801971982041723,
+  "dcr_holdout_median": 13.862971689983313,
+  "closer_to_fit_share": 1.0,
+  "exact_copy_share": 0.0
+}
