@@ -1,0 +1,505 @@
+"""Improvement ladder for the Adult conditional GAN.
+
+Each rung adds one change on top of the previous rung, so the effect of every
+change can be measured on its own:
+
+  0 baseline    one sigmoid head over the whole row, BCE, uniform fake labels,
+                argmax decode, no rounding (mirrors the published sigmoid cGAN)
+  1 sampling    sample categories instead of argmax, zero-inflated capital
+                columns, integer rounding, fake labels at the fit base rate
+  2 st_onehot   straight-through Gumbel one-hots, so the discriminator sees
+                hard 0/1 categories during training as it does for real rows
+  3 wgan_gp     Wasserstein loss with gradient penalty, 5 critic steps, PacGAN
+  4 ctgan_norm  mode-specific normalization (Bayesian GMM) for continuous
+                columns and training-by-sampling of categorical conditions
+
+Model selection uses the selection slice only (protocol A). The test split is
+scored once per run, after selection (protocol B detection and TSTR utility).
+Importing this module does not read data or train.
+"""
+
+import argparse
+import json
+import math
+import time
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from sklearn.mixture import BayesianGaussianMixture
+
+from evaluator import (
+    _design_matrix,
+    final_detection,
+    fidelity_report,
+    hard_validity,
+    schema_from_frame,
+    selection_detection,
+    utility_report,
+)
+from main import INCOME_MAP, load_adult, prepare_experiment
+
+ROOT = Path(__file__).resolve().parent
+OUT_DIR = ROOT / "results" / "ladder"
+NUMERIC = ["age", "fnlwgt", "education-num", "capital-gain", "capital-loss", "hours-per-week"]
+CATEGORICAL = ["workclass", "marital-status", "occupation", "relationship", "race", "sex", "native-country"]
+INTEGER = {"age", "education-num", "hours-per-week", "fnlwgt", "capital-gain", "capital-loss"}
+ZERO_INFLATED = {"capital-gain", "capital-loss"}
+SEEDS = (42, 68, 124)
+
+BASE = {
+    "epochs": 120, "latent_dim": 64, "hidden_dim": 128, "batch_size": 64, "lr": 1e-3,
+    "betas": (0.5, 0.999), "loss": "bce", "critic_steps": 1, "pac": 1, "gp_weight": 10.0,
+    "norm": "minmax", "zero_inflated": False, "round_int": False,
+    "cat_train": "sigmoid", "cat_sample": "argmax", "label_prior": "uniform",
+    "tbs": False, "temperature": 0.2, "score_every": 10,
+}
+RUNGS = {
+    "0_baseline": dict(BASE),
+    "1_sampling": dict(BASE, cat_train="gumbel_soft", cat_sample="sample", zero_inflated=True,
+                       round_int=True, label_prior="empirical"),
+}
+RUNGS["2_st_onehot"] = dict(RUNGS["1_sampling"], cat_train="gumbel_st")
+RUNGS["3_wgan_gp"] = dict(RUNGS["2_st_onehot"], loss="wgangp", critic_steps=5, pac=10, batch_size=500,
+                          lr=2e-4, betas=(0.5, 0.9), hidden_dim=256, epochs=300, score_every=25)
+RUNGS["4_ctgan_norm"] = dict(RUNGS["3_wgan_gp"], norm="gmm", tbs=True)
+
+
+# ---------------------------------------------------------------- data ----
+
+def split_frames(frame, seed):
+    """Same fit / selection / test rows as the published experiment."""
+    bundle = prepare_experiment(frame, seed=seed, output_activation="sigmoid")
+    data = frame.drop(columns=["education"]).copy()
+    data["income"] = data["income"].map(INCOME_MAP).astype(int)
+    take = lambda index: data.iloc[np.asarray(index)].reset_index(drop=True)
+    return take(bundle["train_index"]), take(bundle["select_index"]), take(bundle["test_index"])
+
+
+class Transformer:
+    """Row encoder fit on the fit slice only. Spans are (kind, width, column)."""
+
+    def __init__(self, config, seed):
+        self.config = config
+        self.seed = seed
+
+    def fit(self, frame):
+        self.spans, self.info = [], {}
+        for column in NUMERIC:
+            values = frame[column].to_numpy(dtype=float)
+            info = {"min": float(values.min()), "max": float(values.max())}
+            if self.config["zero_inflated"] and column in ZERO_INFLATED:
+                info["zero"] = True
+                self.spans.append(("cat", 2, column + "__zero"))
+                values = values[values > 0]
+                values = np.log1p(values)
+                info["log"] = True
+                info["lmin"], info["lmax"] = float(values.min()), float(values.max())
+            if self.config["norm"] == "gmm":
+                source = np.log1p(values) if column == "fnlwgt" else values
+                if column == "fnlwgt":
+                    info["log"] = True
+                gmm = BayesianGaussianMixture(
+                    n_components=10, weight_concentration_prior_type="dirichlet_process",
+                    weight_concentration_prior=1e-3, max_iter=200, random_state=self.seed,
+                ).fit(source.reshape(-1, 1))
+                keep = gmm.weights_ > 5e-3
+                info["gmm"] = gmm
+                info["modes"] = np.flatnonzero(keep)
+                self.spans.append(("num", 1, column))
+                self.spans.append(("cat", int(keep.sum()), column + "__mode"))
+            else:
+                self.spans.append(("num", 1, column))
+            self.info[column] = info
+        self.levels = {}
+        for column in CATEGORICAL:
+            levels = sorted(frame[column].astype(str).unique())
+            self.levels[column] = levels
+            self.spans.append(("cat", len(levels), column))
+        self.width = sum(width for _kind, width, _name in self.spans)
+        self.cat_spans = [(i, w, n) for i, (k, w, n) in enumerate(self.spans) if k == "cat" and n in CATEGORICAL]
+        return self
+
+    def transform(self, frame):
+        blocks = []
+        for kind, width, name in self.spans:
+            column = name.split("__")[0]
+            if column in NUMERIC:
+                info = self.info[column]
+                values = frame[column].to_numpy(dtype=float)
+                if name.endswith("__zero"):
+                    blocks.append(np.eye(2)[(values > 0).astype(int)])
+                    continue
+                source = values
+                if info.get("zero"):
+                    source = np.log1p(np.maximum(values, 0.0))
+                elif info.get("log"):
+                    source = np.log1p(values)
+                if "gmm" in info:
+                    # Filled by _align_modes so the alpha value and mode one-hot share one sampled mode.
+                    blocks.append(np.zeros((len(frame), width)))
+                    continue
+                low, high = (info["lmin"], info["lmax"]) if info.get("zero") else (info["min"], info["max"])
+                blocks.append(((source - low) / max(high - low, 1e-9)).clip(0, 1).reshape(-1, 1))
+            else:
+                observed = frame[column].astype(str).to_numpy()
+                blocks.append(np.stack([(observed == level).astype(float) for level in self.levels[column]], 1))
+        # Mode one-hots must use the same sampled mode as the alpha value.
+        out = np.hstack(blocks)
+        if self.config["norm"] == "gmm":
+            out = self._align_modes(frame, out)
+        return out.astype(np.float32)
+
+    def _align_modes(self, frame, out):
+        start = 0
+        rng = np.random.default_rng(self.seed + 1)
+        for kind, width, name in self.spans:
+            column = name.split("__")[0]
+            if kind == "num" and column in NUMERIC and "gmm" in self.info[column]:
+                info = self.info[column]
+                values = frame[column].to_numpy(dtype=float)
+                source = np.log1p(np.maximum(values, 0.0)) if (info.get("zero") or info.get("log")) else values
+                gmm, modes = info["gmm"], info["modes"]
+                means = gmm.means_.reshape(-1)[modes]
+                stds = np.sqrt(gmm.covariances_.reshape(-1))[modes]
+                probs = gmm.predict_proba(source.reshape(-1, 1))[:, modes] + 1e-6
+                probs = probs / probs.sum(axis=1, keepdims=True)
+                cumulative = probs.cumsum(axis=1)
+                chosen = (rng.random((len(probs), 1)) < cumulative).argmax(axis=1)
+                out[:, start] = np.clip((source - means[chosen]) / (4 * stds[chosen]), -0.99, 0.99)
+                width_next = len(modes)
+                out[:, start + 1:start + 1 + width_next] = np.eye(width_next)[chosen]
+            start += width
+        return out
+
+    def inverse(self, matrix, rng):
+        """Encoded rows to an original-domain frame."""
+        data, start, pending = {}, 0, {}
+        for kind, width, name in self.spans:
+            block = matrix[:, start:start + width]
+            start += width
+            column = name.split("__")[0]
+            if name.endswith("__zero"):
+                pending[column + "_nonzero"] = self._pick(block, rng) == 1
+            elif name.endswith("__mode"):
+                pending[column + "_mode"] = self._pick(block, rng)
+            elif kind == "num":
+                pending[column + "_raw"] = block[:, 0]
+            else:
+                data[column] = np.array(self.levels[column])[self._pick(block, rng)]
+        for column in NUMERIC:
+            info = self.info[column]
+            raw = pending[column + "_raw"]
+            if "gmm" in info:
+                gmm, modes = info["gmm"], info["modes"]
+                means = gmm.means_.reshape(-1)[modes]
+                stds = np.sqrt(gmm.covariances_.reshape(-1))[modes]
+                mode = pending[column + "_mode"]
+                source = np.clip(raw, -1, 1) * 4 * stds[mode] + means[mode]
+            else:
+                low, high = (info["lmin"], info["lmax"]) if info.get("zero") else (info["min"], info["max"])
+                source = low + raw * (high - low)
+            values = np.expm1(source) if (info.get("zero") or info.get("log")) else source
+            if info.get("zero"):
+                values = np.where(pending[column + "_nonzero"], values, 0.0)
+            values = np.clip(values, info["min"], info["max"])
+            if self.config["round_int"] and column in INTEGER:
+                values = np.round(values)
+            data[column] = values
+        return pd.DataFrame(data)[NUMERIC + CATEGORICAL]
+
+    def _pick(self, block, rng):
+        if self.config["cat_sample"] == "argmax" or block.shape[1] == 1:
+            return block.argmax(axis=1)
+        probs = np.clip(block, 1e-8, None)
+        probs = probs / probs.sum(axis=1, keepdims=True)
+        return (rng.random((len(probs), 1)) < probs.cumsum(axis=1)).argmax(axis=1)
+
+
+# --------------------------------------------------------------- model ----
+
+class Generator(nn.Module):
+    def __init__(self, transformer, config, cond_dim):
+        super().__init__()
+        self.spans = transformer.spans
+        self.config = config
+        hidden = config["hidden_dim"]
+        self.net = nn.Sequential(
+            nn.Linear(config["latent_dim"] + cond_dim, hidden), nn.BatchNorm1d(hidden) if config["loss"] == "wgangp" else nn.Identity(), nn.ReLU(),
+            nn.Linear(hidden, hidden), nn.BatchNorm1d(hidden) if config["loss"] == "wgangp" else nn.Identity(), nn.ReLU(),
+            nn.Linear(hidden, transformer.width),
+        )
+
+    def forward(self, noise, cond, temperature):
+        raw = self.net(torch.cat([noise, cond], 1))
+        if self.config["cat_train"] == "sigmoid":
+            return torch.sigmoid(raw), raw
+        parts, start = [], 0
+        for kind, width, name in self.spans:
+            chunk = raw[:, start:start + width]
+            start += width
+            if kind == "num":
+                parts.append(torch.tanh(chunk) if self.config["norm"] == "gmm" and name.split("__")[0] in NUMERIC else torch.sigmoid(chunk))
+            else:
+                hard = self.config["cat_train"] == "gumbel_st"
+                parts.append(F.gumbel_softmax(chunk, tau=temperature, hard=hard))
+        return torch.cat(parts, 1), raw
+
+    @torch.no_grad()
+    def probabilities(self, noise, cond):
+        """Per-span probabilities (softmax) for sampling at generation time."""
+        raw = self.net(torch.cat([noise, cond], 1))
+        if self.config["cat_train"] == "sigmoid":
+            return torch.sigmoid(raw)
+        parts, start = [], 0
+        for kind, width, name in self.spans:
+            chunk = raw[:, start:start + width]
+            start += width
+            if kind == "num":
+                parts.append(torch.tanh(chunk) if self.config["norm"] == "gmm" and name.split("__")[0] in NUMERIC else torch.sigmoid(chunk))
+            else:
+                parts.append(torch.softmax(chunk, 1))
+        return torch.cat(parts, 1)
+
+
+class Discriminator(nn.Module):
+    def __init__(self, width, cond_dim, config):
+        super().__init__()
+        self.pac = config["pac"]
+        hidden = config["hidden_dim"]
+        layers = [nn.Linear((width + cond_dim) * self.pac, hidden), nn.LeakyReLU(0.2),
+                  nn.Linear(hidden, hidden), nn.LeakyReLU(0.2), nn.Linear(hidden, 1)]
+        if config["loss"] == "wgangp":
+            layers.insert(2, nn.Dropout(0.5))
+            layers.insert(5, nn.Dropout(0.5))
+        self.net = nn.Sequential(*layers)
+
+    def forward(self, rows, cond):
+        joined = torch.cat([rows, cond], 1)
+        return self.net(joined.view(-1, joined.shape[1] * self.pac))
+
+
+class Conditioner:
+    """Income one-hot, plus a training-by-sampling categorical condition when enabled."""
+
+    def __init__(self, transformer, encoded, income, config, seed):
+        self.config = config
+        self.income = income
+        self.rng = np.random.default_rng(seed)
+        self.base_rate = float(income.mean())
+        self.tbs = config["tbs"]
+        self.encoded = encoded
+        self.offsets, self.cat_dim, start = [], 0, 0
+        span_starts = []
+        for kind, width, name in transformer.spans:
+            span_starts.append(start)
+            start += width
+        if self.tbs:
+            for index, width, name in transformer.cat_spans:
+                block = encoded[:, span_starts[index]:span_starts[index] + width]
+                category = block.argmax(1)
+                freq = np.log1p(np.bincount(category, minlength=width).astype(float))
+                rows_by_cat = [np.flatnonzero(category == k) for k in range(width)]
+                self.offsets.append({"col_start": span_starts[index], "width": width,
+                                     "cond_start": self.cat_dim, "p": freq / freq.sum(),
+                                     "rows": rows_by_cat})
+                self.cat_dim += width
+        self.dim = 2 + self.cat_dim
+
+    def sample_train(self, n):
+        """Conditions and matching real row indexes for one training batch."""
+        cond = np.zeros((n, self.dim), dtype=np.float32)
+        if self.tbs:
+            picks = self.rng.integers(len(self.offsets), size=n)
+            real_rows = np.empty(n, dtype=int)
+            masks = []
+            for i, pick in enumerate(picks):
+                info = self.offsets[pick]
+                k = self.rng.choice(info["width"], p=info["p"])
+                while len(info["rows"][k]) == 0:
+                    k = self.rng.choice(info["width"], p=info["p"])
+                cond[i, 2 + info["cond_start"] + k] = 1.0
+                real_rows[i] = self.rng.choice(info["rows"][k])
+                masks.append((info["col_start"], info["width"], k))
+            cond[np.arange(n), self.income[real_rows]] = 1.0
+            return cond, real_rows, masks
+        real_rows = self.rng.integers(len(self.income), size=n)
+        if self.config["label_prior"] == "empirical":
+            labels = (self.rng.random(n) < self.base_rate).astype(int)
+        else:
+            labels = self.rng.integers(2, size=n)
+        cond[np.arange(n), labels] = 1.0
+        real_cond = np.zeros_like(cond)
+        real_cond[np.arange(n), self.income[real_rows]] = 1.0
+        return (cond, real_cond), real_rows, None
+
+    def for_labels(self, labels, seed=0):
+        labels = np.asarray(labels, dtype=int)
+        cond = np.zeros((len(labels), self.dim), dtype=np.float32)
+        cond[np.arange(len(labels)), labels] = 1.0
+        if self.tbs:
+            # Condition on the category of a real fit row with the same income, as CTGAN
+            # samples conditions from the data distribution at generation time.
+            rng = np.random.default_rng(seed)
+            for i, label in enumerate(labels):
+                row = rng.choice(np.flatnonzero(self.income == label))
+                info = self.offsets[rng.integers(len(self.offsets))]
+                k = int(self.encoded[row, info["col_start"]:info["col_start"] + info["width"]].argmax())
+                cond[i, 2 + info["cond_start"] + k] = 1.0
+        return cond
+
+
+def gradient_penalty(critic, real, fake, cond, pac):
+    alpha = torch.rand(real.shape[0] // pac, 1, 1).repeat(1, pac, real.shape[1]).view(-1, real.shape[1])
+    mixed = (alpha * real + (1 - alpha) * fake).requires_grad_(True)
+    out = critic(mixed, cond)
+    grad = torch.autograd.grad(out.sum(), mixed, create_graph=True)[0]
+    grad = grad.reshape(-1, pac * real.shape[1])
+    return ((grad.norm(2, dim=1) - 1) ** 2).mean()
+
+
+# ------------------------------------------------------------ training ----
+
+def generate(generator, transformer, conditioner, labels, seed):
+    torch.manual_seed(seed)
+    rng = np.random.default_rng(seed)
+    generator.eval()
+    cond = torch.tensor(conditioner.for_labels(labels, seed))
+    noise = torch.randn(len(labels), generator.config["latent_dim"])
+    probs = generator.probabilities(noise, cond).numpy()
+    generator.train()
+    frame = transformer.inverse(probs, rng)
+    return frame
+
+
+def score(real_frame, synth_frame, schema):
+    validity = hard_validity(synth_frame, schema)
+    distances = fidelity_report(real_frame, synth_frame, schema)
+    detection = selection_detection(real_frame, synth_frame, schema)
+    return {
+        "violations": int(validity["violation_total"]),
+        "ks": distances["numeric_ks_mean"], "tv": distances["categorical_tv_mean"],
+        "coverage": distances["category_coverage_mean"], "rare_recall": distances["rare_category_recall"],
+        "correlation_mae": distances["correlation_mae"], "duplicates": distances["synthetic_duplicate_rate"],
+        "selection_auc": detection["mean_auc"],
+    }
+
+
+def train_rung(rung, config, seed, fit, select, test, schema, log):
+    torch.manual_seed(seed)
+    np.random.seed(seed)
+    transformer = Transformer(config, seed).fit(fit)
+    encoded = transformer.transform(fit)
+    income = fit["income"].to_numpy()
+    conditioner = Conditioner(transformer, encoded, income, config, seed)
+    generator = Generator(transformer, config, conditioner.dim)
+    critic = Discriminator(transformer.width, conditioner.dim, config)
+    opt_g = torch.optim.Adam(generator.parameters(), lr=config["lr"], betas=config["betas"])
+    opt_d = torch.optim.Adam(critic.parameters(), lr=config["lr"], betas=config["betas"])
+    data = torch.tensor(encoded)
+    batch = config["batch_size"]
+    steps = max(len(encoded) // batch, 1)
+    bce = nn.BCEWithLogitsLoss()
+    history, best = [], None
+    select_features = select.drop(columns=["income"])
+    started = time.time()
+    for epoch in range(1, config["epochs"] + 1):
+        for _step in range(steps):
+            for _ in range(config["critic_steps"]):
+                conds, rows, masks = conditioner.sample_train(batch)
+                fake_cond = torch.tensor(conds if config["tbs"] else conds[0])
+                real_cond = torch.tensor(conds if config["tbs"] else conds[1])
+                real = data[rows]
+                noise = torch.randn(batch, config["latent_dim"])
+                fake, _raw = generator(noise, fake_cond, config["temperature"])
+                d_real = critic(real, real_cond)
+                d_fake = critic(fake.detach(), fake_cond)
+                if config["loss"] == "wgangp":
+                    loss_d = d_fake.mean() - d_real.mean()
+                    loss_d = loss_d + config["gp_weight"] * gradient_penalty(critic, real, fake.detach(), real_cond, config["pac"])
+                else:
+                    loss_d = bce(d_real, torch.ones_like(d_real)) + bce(d_fake, torch.zeros_like(d_fake))
+                opt_d.zero_grad()
+                loss_d.backward()
+                opt_d.step()
+            conds, rows, masks = conditioner.sample_train(batch)
+            fake_cond = torch.tensor(conds if config["tbs"] else conds[0])
+            noise = torch.randn(batch, config["latent_dim"])
+            fake, raw = generator(noise, fake_cond, config["temperature"])
+            d_fake = critic(fake, fake_cond)
+            loss_g = -d_fake.mean() if config["loss"] == "wgangp" else bce(d_fake, torch.ones_like(d_fake))
+            if config["tbs"]:
+                targets = torch.tensor([k for _s, _w, k in masks])
+                ce = torch.stack([F.cross_entropy(raw[i:i + 1, s:s + w], targets[i:i + 1])
+                                  for i, (s, w, _k) in enumerate(masks)]).mean()
+                loss_g = loss_g + ce
+            opt_g.zero_grad()
+            loss_g.backward()
+            opt_g.step()
+        if epoch % config["score_every"] == 0 or epoch == config["epochs"]:
+            synth = generate(generator, transformer, conditioner, select["income"].to_numpy(), seed=42)
+            row = {"epoch": epoch, "seconds": round(time.time() - started, 1), **score(select_features, synth, schema)}
+            history.append(row)
+            log(f"{rung} seed {seed} epoch {epoch}: auc {row['selection_auc']:.4f} ks {row['ks']:.3f} "
+                f"tv {row['tv']:.3f} cov {row['coverage']:.3f} viol {row['violations']} ({row['seconds']}s)")
+            # Predeclared rule: fewest violations, then lowest selection AUC, then earlier epoch.
+            key = (row["violations"] > 0, row["selection_auc"], epoch)
+            if best is None or key < best["key"]:
+                best = {"key": key, "row": row,
+                        "state": {k: v.detach().clone() for k, v in generator.state_dict().items()}}
+    generator.load_state_dict(best["state"])
+    # Final scoring, once, after selection.
+    dev_synth = generate(generator, transformer, conditioner, select["income"].to_numpy(), seed=7)
+    test_synth = generate(generator, transformer, conditioner, test["income"].to_numpy(), seed=9000 + seed)
+    final = final_detection(select_features, dev_synth, test.drop(columns=["income"]), test_synth, schema)
+    fit_labels = fit["income"].to_numpy()
+    utility_synth = generate(generator, transformer, conditioner, fit_labels, seed=11)
+    utility = utility_report(
+        _design_matrix(fit.drop(columns=["income"]), schema), fit_labels,
+        _design_matrix(utility_synth, schema), fit_labels,
+        _design_matrix(test.drop(columns=["income"]), schema), test["income"].to_numpy(),
+    )
+    test_fidelity = score(test.drop(columns=["income"]), test_synth, schema)
+    return {
+        "rung": rung, "seed": seed, "config": {k: (list(v) if isinstance(v, tuple) else v) for k, v in config.items()},
+        "selected": best["row"], "history": history,
+        "final_detection_auc": final["mean_auc"], "utility_ratio": utility["ratio"],
+        "utility_auc_real": utility["auc_real"], "utility_auc_synthetic": utility["auc_synthetic"],
+        "test_ks": test_fidelity["ks"], "test_tv": test_fidelity["tv"], "test_coverage": test_fidelity["coverage"],
+        "test_violations": test_fidelity["violations"],
+    }
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--rungs", nargs="+", default=list(RUNGS))
+    parser.add_argument("--seeds", nargs="+", type=int, default=list(SEEDS))
+    parser.add_argument("--epochs", type=int, default=None, help="override for smoke tests")
+    args = parser.parse_args()
+    OUT_DIR.mkdir(parents=True, exist_ok=True)
+    frame = load_adult()
+    schema = schema_from_frame(frame, NUMERIC, CATEGORICAL)
+    torch.set_num_threads(int(__import__("os").environ.get("LADDER_THREADS", "1")))
+    for rung in args.rungs:
+        for seed in args.seeds:
+            out = OUT_DIR / f"{rung}_seed{seed}.json"
+            if out.exists() and args.epochs is None:
+                print("skip", out.name, flush=True)
+                continue
+            config = dict(RUNGS[rung])
+            if args.epochs:
+                config["epochs"] = args.epochs
+                config["score_every"] = args.epochs
+            fit, select, test = split_frames(frame, seed)
+            result = train_rung(rung, config, seed, fit, select, test, schema, lambda m: print(m, flush=True))
+            if args.epochs is None:
+                out.write_text(json.dumps(result, indent=2, default=float), encoding="utf-8")
+            print(f"DONE {rung} seed {seed}: final AUC {result['final_detection_auc']:.4f} "
+                  f"utility {result['utility_ratio']:.3f}", flush=True)
+
+
+if __name__ == "__main__":
+    main()
