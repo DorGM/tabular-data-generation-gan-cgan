@@ -5,3 +5,4 @@ scipy==1.15.3
 scikit-learn==1.7.0
 torch==2.14.1+cpu
 matplotlib==3.10.3
+sdv==2.2.0  # only for sdv_baselines.py

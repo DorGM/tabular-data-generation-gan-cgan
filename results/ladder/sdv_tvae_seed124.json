@@ -1,0 +1,22 @@
+{
+  "rung": "sdv_tvae",
+  "seed": 124,
+  "selected": {
+    "violations": 0,
+    "ks": 0.16874600127959058,
+    "tv": 0.05730737592541817,
+    "coverage": 0.8184807256235828,
+    "rare_recall": 0.23255813953488372,
+    "correlation_mae": 0.04917807248263509,
+    "duplicates": 0.0,
+    "selection_auc": 0.9228884247977903
+  },
+  "final_detection_auc": 0.9326700388685124,
+  "utility_ratio": 0.9643488802315586,
+  "utility_auc_real": 0.9072705371329524,
+  "utility_auc_synthetic": 0.8749253265512473,
+  "test_ks": 0.1714519678591535,
+  "test_tv": 0.06249040380776907,
+  "test_coverage": 0.8049112327857972,
+  "test_violations": 0
+}

@@ -1,0 +1,22 @@
+{
+  "rung": "sdv_ctgan",
+  "seed": 124,
+  "selected": {
+    "violations": 0,
+    "ks": 0.17040946896992962,
+    "tv": 0.1037290924047162,
+    "coverage": 1.0,
+    "rare_recall": 1.0,
+    "correlation_mae": 0.03375038234828018,
+    "duplicates": 0.0,
+    "selection_auc": 0.9382189040298119
+  },
+  "final_detection_auc": 0.940246460273656,
+  "utility_ratio": 0.9655399659803507,
+  "utility_auc_real": 0.9072705371329524,
+  "utility_auc_synthetic": 0.8760059635583254,
+  "test_ks": 0.16548953375300682,
+  "test_tv": 0.10105064596082558,
+  "test_coverage": 1.0,
+  "test_violations": 0
+}

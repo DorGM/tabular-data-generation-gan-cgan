@@ -1,0 +1,22 @@
+{
+  "rung": "sdv_gaussian_copula",
+  "seed": 124,
+  "selected": {
+    "violations": 0,
+    "ks": 0.3609404990403071,
+    "tv": 0.018234165067178492,
+    "coverage": 1.0,
+    "rare_recall": 1.0,
+    "correlation_mae": 0.021083004537168673,
+    "duplicates": 0.0,
+    "selection_auc": 0.9995263795117729
+  },
+  "final_detection_auc": 0.9995718562992124,
+  "utility_ratio": 0.8500232701679288,
+  "utility_auc_real": 0.9072705371329524,
+  "utility_auc_synthetic": 0.7712010689007655,
+  "test_ks": 0.3638364297046932,
+  "test_tv": 0.0151565001864403,
+  "test_coverage": 0.9682539682539683,
+  "test_violations": 0
+}

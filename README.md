@@ -1,6 +1,6 @@
 # Synthetic Tabular Data with GANs: A Rigorous Evaluation on UCI Adult
 
-A GAN and a conditional GAN (cGAN) that generate synthetic census rows, evaluated with leakage-free splits, validity gates, real-vs-synthetic detection and train-on-synthetic / test-on-real utility. The main finding is negative, and the evaluation is built to show it: the synthetic rows are still almost perfectly detectable.
+A GAN and a conditional GAN (cGAN) that generate synthetic census rows, evaluated with leakage-free splits, validity gates, real-vs-synthetic detection and train-on-synthetic / test-on-real utility. The first design was almost perfectly detectable (detection AUC 1.000). I diagnosed why, then fixed it one step at a time: the final model brings detection AUC down to **0.779** with a utility ratio of **0.944**, clearly ahead of SDV's CTGAN (0.934) and TVAE (0.938) under the same protocol.
 
 ## Why I built this
 
@@ -10,20 +10,88 @@ My goals were to:
 
 - **Build GAN and conditional GAN generators for mixed-type tabular data**, one of the harder settings for generative models because of skewed numeric columns and many categorical levels.
 - **Design an evaluation that a decision-maker can trust:** leakage-free splits, validity gates before any model is selected, a detector that tries to tell real from synthetic, and a utility test that asks whether a model trained on synthetic data still works on real data.
-- **Report the result as it is.** The generators did not reach realistic output, and the evaluation shows exactly how and why. Diagnosing failure is as important a data science skill as reporting success.
+- **Diagnose the failure, then fix it with evidence.** The first generators did not reach realistic output. I traced the causes, then added one fix at a time and measured each one on the held-out test split, so every gain is attributable to a specific change.
 
 This tabular work complements my computer vision projects. I'm planning a follow-up that combines GAN-based generation with my face-verification pipeline.
 
 ## Highlights
 
+- **A measured improvement ladder.** Five cumulative versions of the cGAN, each adding one fix, scored on three seeds with one shared protocol. Detection AUC falls from 1.000 to 0.779 and the utility ratio rises from 0.615 to 0.944, with zero invalid rows from step 1 on. See [Improvement ladder](#improvement-ladder).
 - **Leakage-free protocol.** Each seed has three disjoint slices: fit, selection and test. One-hot levels and scalers are fit on the fit slice only. Checkpoints are chosen on the selection slice. The test split is scored once, after selection. Unit tests check that a test-only category does not add a dummy column and that a non-fit value does not change the scaler.
 - **Validity before fidelity.** A checkpoint can only be selected after it passes gates for finiteness, mode collapse and plausible numeric ranges. A low generator loss is never a reason to keep a model.
-- **Fidelity measured as detectability.** A random forest is trained to tell real rows from synthetic rows. A ROC-AUC of 0.5 would mean the two cannot be told apart. All accepted models score 0.99999 to 1.0 on held-out data.
+- **Fidelity measured as detectability.** A random forest is trained to tell real rows from synthetic rows. A ROC-AUC of 0.5 would mean the two cannot be told apart. The original accepted models scored 0.99999 to 1.0 on held-out data; the final ladder model scores 0.779.
 - **Utility measured as train-on-synthetic, test-on-real.** A classifier trained on synthetic cGAN rows reaches about 0.84 of the ROC-AUC of one trained on real rows (0.846 and 0.834 on the two accepted seeds).
 - **Failure analysis, not just a score.** The unbounded (linear-output) generator failed the validity gates at learning rate 1e-3 on all six runs, mainly by producing negative capital-gain and capital-loss values. One sigmoid cGAN seed collapsed to rows with age about 90 and 99 hours per week.
 - **A follow-up experiment that tests a fix.** A type-aware cGAN, with a separate output head for each column type, gets zero hard-validity violations and lower marginal distances. Detection AUC still stays above 0.99, which isolates realism, not structure, as the remaining problem.
 
-## Key results
+## Improvement ladder
+
+### Why the first design failed
+
+Reading the original pipeline end to end turned up five concrete causes, each of which lets a detector separate real from synthetic rows:
+
+1. **Non-integer numbers and no exact zeros.** Age and hours came out as 37.42, and capital gain was never exactly 0, while about 92% of real rows have 0. A tree detector finds that in one split.
+2. **Soft versus hard one-hots.** The discriminator saw real categories as exact 0/1 vectors and fake ones as soft probabilities, so it could win without learning anything about the data.
+3. **Wrong label balance.** The cGAN drew fake income labels 50/50, while about 24% of real rows earn over 50K.
+4. **Argmax sampling.** The type-aware model always picked the most likely category, which collapsed rare categories and lowered coverage.
+5. **Poor scaling for skewed columns and a saturated selection signal.** `fnlwgt` and the capital columns are heavy-tailed, and once the detector reached AUC 1.0 it could no longer rank checkpoints.
+
+### The ladder
+
+`ladder.py` trains five versions of the conditional generator. Each one keeps every change above it and adds one more:
+
+| Step | Change |
+| --- | --- |
+| 0 Baseline | The published design: BCE loss, soft one-hots, 50/50 labels |
+| 1 Sampling | Sample categories instead of argmax, round integer columns, a zero gate for capital gain and loss, fake labels at the real base rate |
+| 2 Straight-through one-hots | The generator emits exact 0/1 one-hots in the forward pass (Gumbel-softmax with straight-through gradients), so it matches the real encoding |
+| 3 WGAN-GP and PacGAN | Wasserstein loss with gradient penalty, and the critic judges packs of 10 rows at a time, which penalizes mode collapse |
+| 4 Mode-specific normalization | Each numeric column is encoded by a Gaussian-mixture mode plus a position inside that mode (as in CTGAN), and training conditions on categories sampled evenly so rare ones are learned |
+
+The same three split seeds (42, 68, 124) and the same fit, selection and test slices are used throughout. Each run keeps the checkpoint with no hard-validity violations and the lowest detection AUC on the selection slice. Then the test split is scored once: held-out detection AUC, train-on-synthetic / test-on-real utility, KS, TV and coverage.
+
+For reference, I scored three off-the-shelf generators from [SDV](https://github.com/sdv-dev/SDV) 2.2 (Gaussian copula, CTGAN and TVAE, default settings, 300 epochs) with exactly the same protocol (`sdv_baselines.py`).
+
+### Results on the held-out test split
+
+Mean ± sample SD over three seeds (`results/ladder/SUMMARY.md`, per-run JSON files next to it).
+
+| Model | Detection AUC ↓ | Utility ratio ↑ | Numeric KS ↓ | Categorical TV ↓ | Coverage ↑ | Invalid rows |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| 0 Baseline (published design) | 1.000 ± 0.000 | 0.615 ± 0.260 | 0.736 | 0.513 | 0.315 | 6,513 |
+| 1 + Sampling, integers, real zeros, base-rate labels | 0.975 ± 0.009 | 0.845 ± 0.065 | 0.157 | 0.168 | 0.592 | 0 |
+| 2 + Straight-through one-hots | 0.947 ± 0.004 | 0.906 ± 0.023 | 0.143 | 0.079 | 0.844 | 0 |
+| 3 + WGAN-GP and PacGAN | 0.938 ± 0.006 | 0.951 ± 0.005 | 0.112 | 0.023 | 0.944 | 0 |
+| **4 + Mode-specific normalization, training-by-sampling** | **0.779 ± 0.005** | **0.944 ± 0.019** | **0.031** | 0.027 | **0.994** | **0** |
+| SDV Gaussian copula | 0.998 ± 0.001 | 0.873 ± 0.021 | 0.328 | 0.015 | 0.975 | 0 |
+| SDV TVAE | 0.938 ± 0.012 | 0.962 ± 0.004 | 0.164 | 0.073 | 0.792 | 0 |
+| SDV CTGAN | 0.934 ± 0.018 | 0.962 ± 0.008 | 0.168 | 0.102 | 1.000 | 0 |
+
+![Detection AUC and utility ratio for each step and for the SDV generators](results/ladder/ladder_results.png)
+
+**What the numbers say.**
+
+- Every step lowers detection AUC. The two largest gains come from the cheapest fixes (step 1, which removes invalid rows and lifts utility from 0.62 to 0.85) and from mode-specific normalization (step 4, which cuts detection AUC from 0.938 to 0.779 and numeric KS from 0.112 to 0.031).
+- The final model is much harder to detect than SDV's CTGAN (0.779 versus 0.934) and matches its categorical marginals more closely. SDV's CTGAN and TVAE keep a small edge in utility (0.962 versus 0.944).
+- Against the targets I fixed before the work (detection AUC at most 0.75, utility ratio at least 0.95, zero invalid rows), only the validity target is met. The model is close on the other two but does not pass them.
+- A likely reason for the gap with SDV's CTGAN, which shares steps 3 and 4, is that SDV does not round integers or produce exact zeros. I have not tested this: post-processing SDV's output the same way would check it.
+
+### Reusing the trained models
+
+The selected generator of every run is saved to `models/ladder/{step}_seed{seed}.pt` (about 9 MB each, gitignored, so they are not in this repository). To draw new rows without retraining:
+
+```python
+from ladder import load_generator
+
+sample = load_generator("models/ladder/4_ctgan_norm_seed42.pt")
+rows = sample([0] * 760 + [1] * 240, seed=0)   # income labels in, decoded DataFrame out
+```
+
+## Earlier experiments
+
+The sections below describe the original GAN and cGAN study and the first type-aware follow-up. Their numbers are the starting point that the ladder improves on.
+
+### Original key results
 
 Primary configuration (learning rate 1e-3, three split seeds: 42, 68, 124). The detection AUC is measured on held-out real test rows and a fresh synthetic draw. The efficacy ratio is `synthetic-trained AUC / real-trained AUC` on the real test set.
 
@@ -55,6 +123,9 @@ Type-aware cGAN follow-up (selection slice only, three seeds):
 |-- type_aware.py             # Type-aware conditional generator (Gumbel-Softmax categorical heads, typed numeric heads)
 |-- run_stage2.py             # Trains and scores the type-aware cGAN on the selection slice (follow-up experiment)
 |-- eval_legacy_selection.py  # Rescores the original lr 1e-3 checkpoints with evaluator.py metrics
+|-- ladder.py                 # Improvement ladder: five cumulative cGAN versions, model saving, load_generator
+|-- sdv_baselines.py          # SDV Gaussian copula, CTGAN and TVAE scored with the ladder protocol
+|-- summarize_ladder.py       # Builds results/ladder/SUMMARY.md and the figure from the per-run JSON files
 |-- repro.py                  # Reproducibility helpers: config fingerprints, environment report, checkpoint summaries
 |-- experiments.ipynb         # Executed notebook for the GAN / cGAN experiments, with outputs
 |-- requirements.txt          # Pinned CPU environment
@@ -63,6 +134,7 @@ Type-aware cGAN follow-up (selection slice only, three seeds):
     |-- metrics_schema.json   # Metric definitions, directions, tolerances and predeclared targets
     |-- legacy/               # Baseline records from the original runs (selection histories, run manifest, hashes)
     |-- stage1/               # Original checkpoints rescored with the extended metrics (SELECTION_REPORT.md)
+    |-- ladder/               # Improvement ladder and SDV results: per-run JSON, SUMMARY.md, ladder_results.png
     `-- stage2/               # Type-aware cGAN follow-up: per-epoch history and comparison (SELECTION_REPORT.md)
 ```
 
@@ -78,6 +150,9 @@ python -m unittest discover -s tests -v     # unit tests on small fixture tables
 jupyter notebook experiments.ipynb          # GAN / cGAN experiments
 python eval_legacy_selection.py             # extended metrics on saved checkpoints (needs checkpoints/)
 python run_stage2.py                        # type-aware cGAN follow-up (CPU, about 6.8 hours for three seeds)
+python ladder.py                            # improvement ladder, all steps and seeds (CPU, several hours)
+python sdv_baselines.py                     # SDV reference generators (needs: pip install sdv)
+python summarize_ladder.py                  # rebuild the ladder table and figure from results/ladder/*.json
 ```
 
 `requirements.txt` pins `torch==2.14.1+cpu`. If pip cannot find that build on the default index, install torch from the PyTorch CPU wheel index (`--index-url https://download.pytorch.org/whl/cpu`). Importing `main.py` does not read the ARFF or start training. Trained generators are saved under `checkpoints/`, which is gitignored and not included in this repository. Because of that, `eval_legacy_selection.py` and the reload cells in the notebook need you to train the models first.
@@ -202,15 +277,15 @@ Every scored checkpoint had zero hard-validity violations. The structural hypoth
 - Selecting by detection gap stops ranking checkpoints once the detector saturates.
 - The linear head at `1e-3` produced no acceptable model.
 - The held-out detector is fit on half of a pool of real test rows plus synthetic rows. It is not a detector trained only on development data and then applied to untouched test data. The test split has now been used for these published numbers.
-- Held-out detection and utility were not run for the type-aware cGAN. Its results are on the selection slice only, so they are not directly comparable with the held-out table above.
+- The ladder uses one table, three seeds and one set of hyperparameters per step, with no tuning. Steps were added in one fixed order, so an effect that depends on order is not measured.
+- Held-out detection and utility were not run for the first type-aware cGAN. Its results are on the selection slice only, so they are not directly comparable with the held-out table above.
 
 ## What I would try next
 
-- **Wasserstein loss with gradient penalty (WGAN-GP).** Detector saturation is the failure that remains, and a critic that gives useful gradients when the two distributions are far apart is the natural next ablation. It has not been trained yet.
-- **Mode-specific normalization for skewed numerics** (as in CTGAN), especially for the zero-inflated capital columns and `fnlwgt`.
-- **Training-by-sampling of rare categories**, to raise rare-category recall, which stays near zero.
-- **Baselines beyond GANs**, such as a Gaussian copula or a tree-based synthesizer, to set the bar for detection AUC and utility on this table.
-- **Final held-out evaluation of the type-aware model** on a held-out set that has not been used yet, under the predeclared targets.
+- **Close the last gap to the targets** (detection AUC at most 0.75, utility at least 0.95): longer training and a small hyperparameter search for step 4, which was run with fixed settings.
+- **Test where the edge over SDV comes from** by applying the same rounding and exact-zero handling to SDV's CTGAN output.
+- **Privacy checks** on the final model (distance to the closest real row, membership inference), since better fidelity can mean more memorization.
+- **Combine this with my face-verification work**: use conditional generation to augment under-represented groups and measure the effect on verification error.
 
 ---
 
