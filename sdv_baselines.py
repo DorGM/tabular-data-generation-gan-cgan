@@ -12,7 +12,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from sdv.metadata import SingleTableMetadata
+from sdv.metadata import Metadata
 from sdv.single_table import CTGANSynthesizer, GaussianCopulaSynthesizer, TVAESynthesizer
 
 from evaluator import _design_matrix, final_detection, schema_from_frame, utility_report
@@ -30,20 +30,21 @@ def run(name, seed, frame, schema):
     fit, select, test = split_frames(frame, seed)
     table = fit.copy()
     table["income"] = table["income"].astype(str)
-    metadata = SingleTableMetadata()
-    metadata.detect_from_dataframe(table)
+    metadata = Metadata.detect_from_dataframes({"adult": table})
     for column in CATEGORICAL + ["income"]:
-        metadata.update_column(column, sdtype="categorical")
+        metadata.update_column(column_name=column, sdtype="categorical", table_name="adult")
     for column in NUMERIC:
-        metadata.update_column(column, sdtype="numerical")
+        metadata.update_column(column_name=column, sdtype="numerical", table_name="adult")
     np.random.seed(seed)
     import torch
     torch.manual_seed(seed)
     model = MODELS[name](metadata, seed)
-    model.fit(table)
+    model.fit({"adult": table})
 
     def draw(n):
         rows = model.sample(n)
+        if isinstance(rows, dict):
+            rows = next(iter(rows.values()))
         rows["income"] = rows["income"].astype(int)
         return rows.reset_index(drop=True)
 
