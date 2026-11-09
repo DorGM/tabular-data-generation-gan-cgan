@@ -19,12 +19,19 @@ here. The minimum count k for a value to be kept is chosen on the selection
 slice only, from {2, 3, 5, 10, 20, 50}. k = 1 is excluded up front because a
 value seen once belongs to one person.
 
+Diffusion steps 7-9 (diffusion.py) are scored the same way. Step 10 is built here:
+rows from step 5's GAN are noised to a level t0 and denoised by step 8's diffusion
+model, then passed through the rule filter. t0 is chosen on the selection slice only,
+from REFINE_LEVELS (out of 1,000 noise steps). Sampling time per 1,000 rows is reported
+for every generator.
+
 Importing this module does not read data or train.
 """
 
 import argparse
 import json
 import pickle
+import time
 from pathlib import Path
 
 import numpy as np
@@ -43,11 +50,13 @@ OUT_DIR = ROOT / "results" / "holdout"
 SDV_DIR = ROOT / "models" / "sdv"
 CAPITAL = ["capital-gain", "capital-loss"]
 SNAP_CANDIDATES = (2, 3, 5, 10, 20, 50)
+REFINE_LEVELS = (25, 50, 100, 200, 400)
 COLUMNS = ["age", "workclass", "fnlwgt", "education", "education-num", "marital-status", "occupation",
            "relationship", "race", "sex", "capital-gain", "capital-loss", "hours-per-week", "native-country",
            "income"]
 MODELS = ["real_holdout", "0_baseline", "1_sampling", "2_st_onehot", "3_wgan_gp", "4_ctgan_norm",
           "4_ctgan_norm+reject", "5_rules", "6_rules_snap",
+          "7_ddpm", "7_ddpm+reject", "8_ddpm_rules", "9_latent_rules", "10_gan_refine",
           "sdv_gaussian_copula", "sdv_tvae", "sdv_ctgan", "sdv_ctgan+reject"]
 
 
@@ -131,6 +140,39 @@ def memorization(synth, fit, holdout, schema, seed, n_ref=10000, n_synth=5000):
 
 # ------------------------------------------------------------- models ----
 
+def refine_sampler(seed, select, schema):
+    """Step 10: step 5's GAN rows, noised to t0 and denoised by step 8. t0 is chosen on the selection slice."""
+    import torch
+    from diffusion import Sampler
+
+    gan = load_generator(MODEL_DIR / f"5_rules_seed{seed}.pt", reject=False)
+    sampler = Sampler(torch.load(MODEL_DIR / f"8_ddpm_rules_seed{seed}.pt", map_location="cpu", weights_only=False))
+    model, encoder = sampler.model, sampler.encoder
+    stride = model.T / sampler.config["sample_steps"]
+
+    def draw_at(t0):
+        @torch.no_grad()
+        def draw(labels, draw_seed):
+            rows = gan(labels, seed=draw_seed)[NUMERIC + CATEGORICAL]
+            x_num, x_cat = encoder.transform(rows)
+            g = torch.Generator().manual_seed(int(draw_seed) + 1)
+            y = torch.as_tensor(labels, dtype=torch.long)
+            t = torch.full((len(labels),), int(t0), dtype=torch.long)
+            noisy = model.q_sample(torch.tensor(x_num), torch.tensor(x_cat), t, g)[:2]
+            out_num, out_cat = model.sample(y, max(1, round(t0 / stride)), g, start=noisy, t_start=t0)
+            return encoder.inverse(out_num.numpy(), out_cat.numpy())
+        return draw
+
+    select_x = select.drop(columns=["income"])
+    scores = {}
+    for t0 in REFINE_LEVELS:
+        rows = sampler(select["income"].to_numpy(), seed=42, reject=True, draw=draw_at(t0))
+        scores[t0] = selection_detection(select_x, rows[NUMERIC + CATEGORICAL], schema)["mean_auc"]
+    best = min(REFINE_LEVELS, key=lambda t0: (round(scores[t0], 4), t0))
+    sample = lambda labels, seed=0, stats=None: sampler(labels, seed, stats, reject=True, draw=draw_at(best))
+    return sample, {"refine_t0": best, "refine_selection_auc": scores}
+
+
 def sdv_sampler(name, seed, fit):
     """Fit (or reload) an SDV synthesizer on the fit slice. Returns a function n -> frame with income."""
     from sdv.metadata import Metadata
@@ -205,6 +247,20 @@ def evaluate(name, seed, frame, holdout, schema):
             dev = sample(len(select))
             test_synth = sample(len(holdout), stats)
             utility_synth = sample(len(fit))
+        elif name == "10_gan_refine" or name.split("_")[0] in {"7", "8", "9"}:
+            from diffusion import load_diffusion
+
+            if name == "10_gan_refine":
+                generator, extra = refine_sampler(seed, select, schema)
+            else:
+                step = name.replace("+reject", "")
+                generator = load_diffusion(MODEL_DIR / f"{step}_seed{seed}.pt",
+                                           reject=True if name.endswith("+reject") else None)
+            dev = generator(select["income"].to_numpy(), seed=7)
+            started = time.time()
+            test_synth = generator(holdout["income"].to_numpy(), seed=9000 + seed, stats=stats)
+            stats["sample_seconds_per_1k"] = 1000 * (time.time() - started) / len(holdout)
+            utility_synth = generator(fit["income"].to_numpy(), seed=11)
         else:
             rung = {"4_ctgan_norm+reject": "4_ctgan_norm", "6_rules_snap": "5_rules"}.get(name, name)
             reject = True if name == "4_ctgan_norm+reject" else None
@@ -217,7 +273,9 @@ def evaluate(name, seed, frame, holdout, schema):
                 extra = {"snap_k": k, "snap_selection_auc": k_scores,
                          "snap_values_kept": {c: int(len(v)) for c, v in sets.items()}}
             dev = post(generator(select["income"].to_numpy(), seed=7))
+            started = time.time()
             test_synth = post(generator(holdout["income"].to_numpy(), seed=9000 + seed, stats=stats))
+            stats["sample_seconds_per_1k"] = 1000 * (time.time() - started) / len(holdout)
             utility_synth = post(generator(fit["income"].to_numpy(), seed=11))
 
     test_real_x = test_real.drop(columns=["income"])
@@ -240,6 +298,7 @@ def evaluate(name, seed, frame, holdout, schema):
         "hard_violations": fidelity["violations"] if fidelity else None,
         "rule_violations": rules, "rule_violation_share": float(_mask.mean()),
         "rejected_share": stats.get("rejected_share"),
+        "sample_seconds_per_1k": stats.get("sample_seconds_per_1k"),
         **memorization(test_synth[features], fit[features], holdout[features], schema, seed),
         **extra,
     }

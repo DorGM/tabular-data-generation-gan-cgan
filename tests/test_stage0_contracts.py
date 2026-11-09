@@ -345,11 +345,9 @@ class Stage0Contracts(unittest.TestCase):
         self.assertGreater(result["mean_auc"], 0.9)
 
     def test_published_docs_do_not_repeat_the_old_errors(self):
-        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        # The README now describes the current ladder only; the baseline study lives in the notebook.
         notebook = (ROOT / "experiments.ipynb").read_text(encoding="utf-8")
-        self.assertIn("38.6503", readme)
         self.assertIn("full_selection_age_mean", notebook)
-        self.assertIn("not the first eligible checkpoint", readme)
         self.assertIn("not the first eligible checkpoint", notebook)
         self.assertNotIn("decoded_age_mean", notebook)
 

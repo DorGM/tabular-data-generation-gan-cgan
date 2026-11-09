@@ -22,6 +22,11 @@ LABELS = {
     "4_ctgan_norm+reject": "4 + rule filter at sampling only",
     "5_rules": "5 + Domain-rule loss penalty and rule filter",
     "6_rules_snap": "6 + Capital values snapped to common real values",
+    "7_ddpm": "7 Diffusion (TabDDPM style), no rules",
+    "7_ddpm+reject": "7 + rule filter at sampling only",
+    "8_ddpm_rules": "8 Diffusion + domain-rule loss and rule filter",
+    "9_latent_rules": "9 Latent diffusion (TabSyn style) + rules",
+    "10_gan_refine": "10 Step 5 GAN rows refined by step 8 diffusion",
     "sdv_gaussian_copula": "SDV Gaussian copula",
     "sdv_tvae": "SDV TVAE",
     "sdv_ctgan": "SDV CTGAN",
@@ -35,6 +40,8 @@ METRICS = [
     ("tv", "Categorical TV ↓"),
     ("rule_violation_share", "Rule-breaking rows ↓"),
     ("closer_to_fit_share", "Closer to training rows (≈0.5 = no memorization)"),
+    ("exact_copy_share", "Exact copies of training rows"),
+    ("sample_seconds_per_1k", "Sampling seconds per 1,000 rows"),
 ]
 
 
@@ -53,7 +60,7 @@ def main():
             continue
         entry = {"key": key, "label": LABELS[key], "n": len(runs[key])}
         for metric, _ in METRICS:
-            values = np.array([np.nan if r[metric] is None else r[metric] for r in runs[key]], dtype=float)
+            values = np.array([np.nan if r.get(metric) is None else r[metric] for r in runs[key]], dtype=float)
             entry[metric] = (np.nanmean(values) if not np.isnan(values).all() else np.nan,
                              np.nanstd(values, ddof=1) if (~np.isnan(values)).sum() > 1 else 0.0)
         entry["snap_k"] = [r.get("snap_k") for r in runs[key] if r.get("snap_k")]
@@ -71,13 +78,16 @@ def main():
     ]
     for row in rows:
         lines.append(f"| {row['label']} | " + " | ".join(fmt(*row[m]) for m, _ in METRICS) + " |")
+    refine = [r.get("refine_t0") for r in runs.get("10_gan_refine", []) if r.get("refine_t0")]
+    if refine:
+        lines += ["", f"Step 10 noise level t0 (of 1,000) chosen on the selection slice, per seed: {refine}."]
     snaps = [row for row in rows if row["snap_k"]]
     if snaps:
         lines += ["", f"Snap threshold k chosen on the selection slice, per seed: {snaps[0]['snap_k']}."]
     (HOLDOUT / "SUMMARY.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
-    shown = [row for row in rows if row["key"] != "4_ctgan_norm+reject"]
-    fig, axes = plt.subplots(1, 3, figsize=(15, 4.6))
+    shown = [row for row in rows if not row["key"].endswith("+reject")]
+    fig, axes = plt.subplots(1, 3, figsize=(15, 5.6))
     colors = ["#55A868" if r["key"] == "real_holdout" else "#A0A0A0" if r["key"].startswith("sdv") else "#4C72B0"
               for r in shown]
     for axis, metric, title, xlim in [

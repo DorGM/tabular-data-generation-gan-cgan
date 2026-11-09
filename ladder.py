@@ -102,6 +102,12 @@ def rule_violations(frame):
 
 # ---------------------------------------------------------------- data ----
 
+def split_indices(frame, seed):
+    """Row positions (in load_adult order) of the fit, selection and test slices for a split seed."""
+    bundle = prepare_experiment(frame, seed=seed, output_activation="sigmoid")
+    return {name: np.asarray(bundle[f"{name}_index"], dtype=int) for name in ("train", "select", "test")}
+
+
 def split_frames(frame, seed):
     """Same fit / selection / test rows as the published experiment."""
     bundle = prepare_experiment(frame, seed=seed, output_activation="sigmoid")
@@ -400,15 +406,24 @@ def rule_penalty(raw, transformer):
         if kind == "cat" and name in CATEGORICAL:
             probs[name] = torch.softmax(raw[:, start:start + width], 1)
         start += width
-    level = lambda column, value: probs[column][:, transformer.levels[column].index(value)]
+    return expected_violations(probs, transformer.levels).mean()
+
+
+def expected_violations(probs, levels):
+    """Expected number of broken domain rules per row, given category probabilities per column.
+
+    probs maps each categorical column to an (n, levels) tensor of probabilities. Shared by the
+    GAN (step 5) and the diffusion steps, so every model is held to the same rules.
+    """
+    level = lambda column, value: probs[column][:, levels[column].index(value)]
     husband, wife = level("relationship", "Husband"), level("relationship", "Wife")
-    married = sum(level("marital-status", m) for m in MARRIED if m in transformer.levels["marital-status"])
-    no_job = sum(level("workclass", w) for w in NO_OCCUPATION if w in transformer.levels["workclass"])
+    married = sum(level("marital-status", m) for m in MARRIED if m in levels["marital-status"])
+    no_job = sum(level("workclass", w) for w in NO_OCCUPATION if w in levels["workclass"])
     occ_missing = level("occupation", "?")
     penalty = husband * level("sex", "Female") + wife * level("sex", "Male")
     penalty = penalty + (husband + wife) * (1 - married)
     penalty = penalty + occ_missing * (1 - no_job) + (1 - occ_missing) * no_job
-    return penalty.mean()
+    return penalty
 
 
 # ------------------------------------------------------------ training ----
@@ -464,7 +479,16 @@ def score(real_frame, synth_frame, schema):
     }
 
 
-def train_rung(rung, config, seed, fit, select, test, schema, log):
+def _snapshot_epochs(epochs):
+    """Four evenly spaced epochs kept for the reverse-engineering study (memorization over training)."""
+    return sorted({max(1, round(epochs * q)) for q in (0.25, 0.5, 0.75, 1.0)})
+
+
+def _clone(module):
+    return {k: v.detach().clone() for k, v in module.state_dict().items()}
+
+
+def train_rung(rung, config, seed, fit, select, test, schema, log, model_dir=None, split=None):
     torch.manual_seed(seed)
     np.random.seed(seed)
     transformer = Transformer(config, seed).fit(fit)
@@ -480,9 +504,11 @@ def train_rung(rung, config, seed, fit, select, test, schema, log):
     steps = max(len(encoded) // batch, 1)
     bce = nn.BCEWithLogitsLoss()
     history, best = [], None
+    losses, snapshots, keep = [], {}, _snapshot_epochs(config["epochs"])
     select_features = select.drop(columns=["income"])
     started = time.time()
     for epoch in range(1, config["epochs"] + 1):
+        sum_d = sum_g = 0.0
         for _step in range(steps):
             for _ in range(config["critic_steps"]):
                 conds, rows, masks = conditioner.sample_train(batch)
@@ -501,6 +527,7 @@ def train_rung(rung, config, seed, fit, select, test, schema, log):
                 opt_d.zero_grad()
                 loss_d.backward()
                 opt_d.step()
+                sum_d += float(loss_d.detach())
             conds, rows, masks = conditioner.sample_train(batch)
             fake_cond = torch.tensor(conds if config["tbs"] else conds[0])
             noise = torch.randn(batch, config["latent_dim"])
@@ -517,6 +544,11 @@ def train_rung(rung, config, seed, fit, select, test, schema, log):
             opt_g.zero_grad()
             loss_g.backward()
             opt_g.step()
+            sum_g += float(loss_g.detach())
+        # Loss per epoch and a few weight snapshots; neither touches a random number generator.
+        losses.append({"epoch": epoch, "loss_d": sum_d / (steps * config["critic_steps"]), "loss_g": sum_g / steps})
+        if epoch in keep:
+            snapshots[epoch] = {"generator_state": _clone(generator), "critic_state": _clone(critic)}
         if epoch % config["score_every"] == 0 or epoch == config["epochs"]:
             synth = generate(generator, transformer, conditioner, select["income"].to_numpy(), seed=42)
             row = {"epoch": epoch, "seconds": round(time.time() - started, 1), **score(select_features, synth, schema)}
@@ -526,8 +558,9 @@ def train_rung(rung, config, seed, fit, select, test, schema, log):
             # Predeclared rule: fewest violations, then lowest selection AUC, then earlier epoch.
             key = (row["violations"] > 0, row["selection_auc"], epoch)
             if best is None or key < best["key"]:
-                best = {"key": key, "row": row,
-                        "state": {k: v.detach().clone() for k, v in generator.state_dict().items()}}
+                best = {"key": key, "row": row, "state": _clone(generator), "critic_state": _clone(critic)}
+    final_state = {"generator_state": _clone(generator), "critic_state": _clone(critic),
+                   "opt_g_state": opt_g.state_dict(), "opt_d_state": opt_d.state_dict(), "epoch": config["epochs"]}
     generator.load_state_dict(best["state"])
     # Final scoring, once, after selection.
     dev_synth = generate(generator, transformer, conditioner, select["income"].to_numpy(), seed=7)
@@ -541,14 +574,21 @@ def train_rung(rung, config, seed, fit, select, test, schema, log):
         _design_matrix(test.drop(columns=["income"]), schema), test["income"].to_numpy(),
     )
     test_fidelity = score(test.drop(columns=["income"]), test_synth, schema)
-    MODEL_DIR.mkdir(parents=True, exist_ok=True)
+    model_dir = Path(model_dir or MODEL_DIR)
+    model_dir.mkdir(parents=True, exist_ok=True)
+    # Everything the reverse-engineering study needs, so it can run without retraining:
+    # the critic at the selected epoch, final weights and optimizer states (to resume),
+    # snapshots over training, the loss curve, and which rows were members of the fit slice.
     torch.save({
         "rung": rung, "seed": seed, "config": config, "selected_epoch": best["row"]["epoch"],
-        "generator_state": generator.state_dict(), "transformer": transformer,
+        "generator_state": generator.state_dict(), "critic_state": best["critic_state"],
+        "transformer": transformer,
         "conditioner": {"dim": conditioner.dim, "tbs": conditioner.tbs, "offsets": conditioner.offsets,
                         "income": conditioner.income, "encoded": conditioner.encoded,
                         "base_rate": conditioner.base_rate},
-    }, MODEL_DIR / f"{rung}_seed{seed}.pt")
+        "final": final_state, "snapshots": snapshots, "losses": losses, "history": history,
+        "split": split, "torch_version": torch.__version__,
+    }, model_dir / f"{rung}_seed{seed}.pt")
     return {
         "rung": rung, "seed": seed, "config": {k: (list(v) if isinstance(v, tuple) else v) for k, v in config.items()},
         "selected": best["row"], "history": history,
@@ -585,14 +625,17 @@ def main():
     parser.add_argument("--rungs", nargs="+", default=list(RUNGS))
     parser.add_argument("--seeds", nargs="+", type=int, default=list(SEEDS))
     parser.add_argument("--epochs", type=int, default=None, help="override for smoke tests")
+    parser.add_argument("--out-dir", default=str(OUT_DIR), help="where result JSON files go")
+    parser.add_argument("--model-dir", default=str(MODEL_DIR), help="where checkpoints go")
     args = parser.parse_args()
-    OUT_DIR.mkdir(parents=True, exist_ok=True)
+    out_dir = Path(args.out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
     frame = load_adult()
     schema = schema_from_frame(frame, NUMERIC, CATEGORICAL)
     torch.set_num_threads(int(__import__("os").environ.get("LADDER_THREADS", "1")))
     for rung in args.rungs:
         for seed in args.seeds:
-            out = OUT_DIR / f"{rung}_seed{seed}.json"
+            out = out_dir / f"{rung}_seed{seed}.json"
             if out.exists() and args.epochs is None:
                 print("skip", out.name, flush=True)
                 continue
@@ -601,7 +644,8 @@ def main():
                 config["epochs"] = args.epochs
                 config["score_every"] = args.epochs
             fit, select, test = split_frames(frame, seed)
-            result = train_rung(rung, config, seed, fit, select, test, schema, lambda m: print(m, flush=True))
+            result = train_rung(rung, config, seed, fit, select, test, schema, lambda m: print(m, flush=True),
+                                model_dir=args.model_dir, split=split_indices(frame, seed))
             if args.epochs is None:
                 out.write_text(json.dumps(result, indent=2, default=float), encoding="utf-8")
             print(f"DONE {rung} seed {seed}: final AUC {result['final_detection_auc']:.4f} "
