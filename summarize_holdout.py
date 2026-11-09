@@ -67,11 +67,14 @@ def main():
         rows.append(entry)
 
     lines = [
-        "# Results on the official Adult test file (16,281 rows no model or rule has seen)",
+        "# Results on the official Adult test file (16,281 rows)",
         "",
         "Mean ± sample SD over split seeds 42, 68 and 124. Detectors are fit on selection rows vs. a synthetic",
         "draw and scored on holdout rows vs. a fresh draw. The reference row uses real rows the models never",
-        "trained on, so it shows the best a generator could score.",
+        "trained on, so it shows the best a generator could score. No model was trained on the test file and every",
+        "choice was made on the selection slice, but the file was looked at many times while the ladder was built, so",
+        "it is a reused benchmark. The exact-copy column compares 5,000 sampled synthetic",
+        "rows with 10,000 sampled fit rows; ../ablations/SUMMARY.md checks every generated row against every fit row.",
         "",
         "| Model | " + " | ".join(name for _, name in METRICS) + " |",
         "| --- | " + " | ".join("---:" for _ in METRICS) + " |",
@@ -102,7 +105,7 @@ def main():
         axis.set_xlim(*xlim)
         axis.set_title(title, fontsize=10)
         axis.grid(axis="x", alpha=0.3)
-    fig.suptitle("Synthetic Adult data scored on the official test file (unseen holdout)", fontsize=11)
+    fig.suptitle("Synthetic Adult data scored on the official Adult test file", fontsize=11)
     fig.tight_layout()
     fig.savefig(HOLDOUT / "holdout_results.png", dpi=150)
     print((HOLDOUT / "SUMMARY.md").read_text(encoding="utf-8"))

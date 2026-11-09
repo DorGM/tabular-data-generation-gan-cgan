@@ -1,7 +1,8 @@
 """Improvement ladder for the Adult conditional GAN.
 
-Each rung adds one change on top of the previous rung, so the effect of every
-change can be measured on its own:
+Each rung adds one change, or a named bundle of related changes, on top of the
+previous rung. Bundled changes (rungs 1, 3, 4 and 5) are measured together, not
+one by one:
 
   0 baseline    one sigmoid head over the whole row, BCE, uniform fake labels,
                 argmax decode, no rounding (mirrors the published sigmoid cGAN)

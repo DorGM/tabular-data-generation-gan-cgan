@@ -1,8 +1,11 @@
-# Results on the official Adult test file (16,281 rows no model or rule has seen)
+# Results on the official Adult test file (16,281 rows)
 
 Mean ± sample SD over split seeds 42, 68 and 124. Detectors are fit on selection rows vs. a synthetic
 draw and scored on holdout rows vs. a fresh draw. The reference row uses real rows the models never
-trained on, so it shows the best a generator could score.
+trained on, so it shows the best a generator could score. No model was trained on the test file and every
+choice was made on the selection slice, but the file was looked at many times while the ladder was built, so
+it is a reused benchmark. The exact-copy column compares 5,000 sampled synthetic
+rows with 10,000 sampled fit rows; ../ablations/SUMMARY.md checks every generated row against every fit row.
 
 | Model | Detection AUC, forest ↓ | Detection AUC, boosting ↓ | Utility ratio ↑ | Numeric KS ↓ | Categorical TV ↓ | Rule-breaking rows ↓ | Closer to training rows (≈0.5 = no memorization) | Exact copies of training rows | Sampling seconds per 1,000 rows |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |

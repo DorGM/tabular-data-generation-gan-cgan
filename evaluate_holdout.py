@@ -1,8 +1,10 @@
-"""Score every generator on a fresh holdout: the official Adult test file.
+"""Score every generator on the official Adult test file (a reused benchmark; see below).
 
 The ladder's own test split was used to study which rows the detector catches,
 so it is no longer untouched. This script scores all models on the 16,281 rows
-of the official `adult.test` file, which no model, rule or threshold has seen.
+of the official `adult.test` file. No model is trained on it and every choice is
+made on the selection slice, but its results have been looked at many times while
+the ladder was built, so it is a reused benchmark, not a fresh one.
 Training data, the fit slice and the selection slice are unchanged.
 
 For each model and split seed it reports:
@@ -223,9 +225,20 @@ def sdv_sampler(name, seed, fit):
     return sample
 
 
-def evaluate(name, seed, frame, holdout, schema):
+def draw_three(generator, seed, fit, select, holdout, stats):
+    """Selection-sized, holdout-sized (timed) and fit-sized draws with the seeds every model uses."""
+    dev = generator(select["income"].to_numpy(), seed=7)
+    started = time.time()
+    test_synth = generator(holdout["income"].to_numpy(), seed=9000 + seed, stats=stats)
+    stats["sample_seconds_per_1k"] = 1000 * (time.time() - started) / len(holdout)
+    utility_synth = generator(fit["income"].to_numpy(), seed=11)
+    return dev, test_synth, utility_synth
+
+
+def draws(name, seed, frame, holdout, schema):
+    """The three synthetic draws a model is scored on (selection-sized, holdout-sized, fit-sized),
+    with the real rows each is compared against. Same seeds every time, so draws can be rebuilt."""
     fit, select, _old_test = split_frames(frame, seed)
-    features = NUMERIC + CATEGORICAL
     select_x = select.drop(columns=["income"])
     stats, extra = {}, {}
 
@@ -256,11 +269,7 @@ def evaluate(name, seed, frame, holdout, schema):
                 step = name.replace("+reject", "")
                 generator = load_diffusion(MODEL_DIR / f"{step}_seed{seed}.pt",
                                            reject=True if name.endswith("+reject") else None)
-            dev = generator(select["income"].to_numpy(), seed=7)
-            started = time.time()
-            test_synth = generator(holdout["income"].to_numpy(), seed=9000 + seed, stats=stats)
-            stats["sample_seconds_per_1k"] = 1000 * (time.time() - started) / len(holdout)
-            utility_synth = generator(fit["income"].to_numpy(), seed=11)
+            dev, test_synth, utility_synth = draw_three(generator, seed, fit, select, holdout, stats)
         else:
             rung = {"4_ctgan_norm+reject": "4_ctgan_norm", "6_rules_snap": "5_rules"}.get(name, name)
             reject = True if name == "4_ctgan_norm+reject" else None
@@ -277,7 +286,19 @@ def evaluate(name, seed, frame, holdout, schema):
             test_synth = post(generator(holdout["income"].to_numpy(), seed=9000 + seed, stats=stats))
             stats["sample_seconds_per_1k"] = 1000 * (time.time() - started) / len(holdout)
             utility_synth = post(generator(fit["income"].to_numpy(), seed=11))
+    return {"fit": fit, "dev_real": dev_real, "dev": dev, "test_real": test_real, "test_synth": test_synth,
+            "utility_real": utility_real, "utility_synth": utility_synth, "stats": stats, "extra": extra}
 
+
+def evaluate(name, seed, frame, holdout, schema):
+    d = draws(name, seed, frame, holdout, schema)
+    return score_draws(name, seed, d, holdout, schema)
+
+
+def score_draws(name, seed, d, holdout, schema):
+    features = NUMERIC + CATEGORICAL
+    fit, dev_real, dev, test_real, test_synth = d["fit"], d["dev_real"], d["dev"], d["test_real"], d["test_synth"]
+    utility_real, utility_synth, stats, extra = d["utility_real"], d["utility_synth"], d["stats"], d["extra"]
     test_real_x = test_real.drop(columns=["income"])
     rf = final_detection(dev_real, dev[features], test_real_x, test_synth[features], schema)["mean_auc"]
     gb = boosting_detection(dev_real, dev[features], test_real_x, test_synth[features], schema)
