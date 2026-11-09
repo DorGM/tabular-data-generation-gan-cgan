@@ -10,11 +10,11 @@ design decision.
 - **Source:** 2018 ACS 1-year Public Use Microdata Sample, California person file (`psam_p06.csv`
   from `csv_pca.zip`, www2.census.gov).
 - **Task:** the folktables ACSIncome task, which mimics the Adult extraction.
-  - Filter: age over 16, total income over $100, usual hours worked over 0, person weight at least 1. This leaves 195,665 people in 111,426 households.
+  - Filter: age over 16, total income over $100, usual hours worked over 0, person weight at least 1. In the whole file, this leaves 195,665 people in 111,426 households.
   - Label: total person income (`PINCP`) over $50,000.
   - Features:
     - Numeric (integers): age (`AGEP`) and usual hours per week (`WKHP`).
-    - Categorical codes: class of worker (`COW`), education (`SCHL`), marital status (`MAR`), occupation (`OCCP`, 529 codes), place of birth (`POBP`, 219 codes), relationship to the reference person (`RELP`), sex (`SEX`) and race (`RAC1P`).
+    - Categorical codes (the code counts are for the whole file; the training part has 518 and 201): class of worker (`COW`), education (`SCHL`), marital status (`MAR`), occupation (`OCCP`, 529 codes), place of birth (`POBP`, 219 codes), relationship to the reference person (`RELP`), sex (`SEX`) and race (`RAC1P`).
 - Survey weights are not used. The rows are treated as a sample, as with Adult.
 
 ## 2. Splits (fixed, by household)
@@ -38,7 +38,8 @@ design decision.
 - **Validation part only:** every choice.
   - Checkpoints use the same rule as on Adult: zero hard-validity violations first, then the lowest detection AUC, then the earlier checkpoint.
   - Step 10's noise level t0, from 25, 50, 100, 200, 400, 600 and 800 out of 1,000.
-  - Step 9's categorical decoding: argmax or sampling from the decoder's softmax, whichever has the lower validation detection AUC. This choice was added after the Adult check on rare categories (`results/ablations/decoding.json`).
+  - Step 9's categorical decoding: argmax or sampling from the decoder's softmax, whichever has the lower validation detection AUC at 4 decimals (a tie keeps argmax). It is scored on draw seed 43, because seed 42's argmax draw already chose step 9's checkpoint. This choice was added after the Adult check on rare categories (`results/ablations/decoding.json`).
+  - Step 10's noise level uses draw seed 42, as on Adult.
 - **Hyperparameters:** taken from the Adult configs (`ladder.RUNGS`, `diffusion.STEPS`), with nothing tuned on ACS. The same number of epochs or steps is used, and the same three training seeds (42, 68, 124) on the one fixed split.
 
 ## 4. Domain rules (derived from the training part only)
@@ -49,7 +50,7 @@ Each rule follows from what the fields mean. A rule is kept only if it has at mo
 | --- | ---: |
 | A spouse of the reference person (`RELP` 1) is married (`MAR` 1). | 0 |
 | An unmarried partner (`RELP` 13) is not married. | 0 |
-| Armed-forces occupations (`OCCP` 9800 to 9830) work for the federal government (`COW` 5). | 1 |
+| Armed-forces occupations (`OCCP` 9800 to 9830) work for the federal government (`COW` 5). | 1 (a state-government worker, plausibly the National Guard) |
 
 Adult's husband/wife-sex rule does not carry over, because the 2018 ACS spouse code does not depend on sex. Adult's missing-occupation rule does not apply either, because ACSIncome keeps only people who work.
 
@@ -66,7 +67,8 @@ Adult's husband/wife-sex rule does not carry over, because the 2018 ACS spouse c
 
 Controls that need no extra training:
 
-- `pure_20` and `pure_40`: step 8 sampled from noise with 20 and 40 denoiser calls. Step 10 uses 2 to 80 calls, depending on t0.
+- `pure_20` and `pure_40`: step 8 sampled from noise with 20 and 40 denoiser calls.
+- `pure_matched`: step 8 from noise with the same number of calls as that seed's step 10 (t0 / 10, from 2 to 80).
 - `10_marginals_refine`: the same refinement as step 10, but starting from columns drawn independently from the training part, given the label. Its t0 is chosen on validation.
 - `real_reference`: real reference rows in place of synthetic rows.
 
@@ -76,10 +78,10 @@ These are the same as on Adult:
 
 - detection AUC with a random forest and with gradient boosting, each fit on validation rows vs. one synthetic draw and scored on test rows vs. a fresh draw;
 - train-on-synthetic, test-on-real utility on the test part;
-- KS, categorical TV, category coverage and rare-category recall;
-- hard validity and rule violations;
+- KS, categorical TV, category coverage and rare-category recall, overall and per column. Rare means under 1% of rows. With 518 occupation and 201 birthplace codes, almost every code of those two columns is rare, so the pooled rare recall mostly measures them;
+- hard validity and rule violations, and how many rows the filter still leaves broken after 50 rounds. Real reference rows can show a few invalid categories: codes that never occur in the training part, about 0.15% of rows in validation;
 - the share of rows the filter redraws;
-- sampling seconds per 1,000 rows and denoiser calls;
+- sampling seconds per 1,000 rows and denoiser calls. GAN times include building the condition vectors, as on Adult;
 - exact copies of training rows over every generated row;
 - the memorization share: is each synthetic row closer to the training rows than to the test rows?
 
@@ -87,16 +89,31 @@ Mean ± SD over the three training seeds. Seed SD understates run-to-run variati
 
 ## 7. Hypotheses stated before the test is read
 
-These come from the Adult results:
+These come from the Adult results.
 
-1. Diffusion with the filter (7 + filter, 8) has a lower boosting AUC than the GAN with rules (5).
-2. The rule penalty (8 vs. 7) brings the filter's redraw share close to zero without hurting detection AUC.
-3. Latent diffusion (9) has lower category coverage than 7 and 8.
-4. Step 10 is no better than pure diffusion at the same number of denoiser calls, and no better than refinement from independent marginals. If it is better than both, the GAN start helps.
+- **Primary metric:** boosting detection AUC on the test part. The forest AUC is secondary.
+- **Decision rule:** a difference counts only if the 3-seed means differ by at least 0.01 in the stated direction. A smaller gap is reported as "no measurable difference". This threshold is the size of the cross-CPU rerun noise seen on Adult.
+
+1. **Diffusion beats the GAN.** Both 7 + filter and 8 have a lower boosting AUC than 5.
+2. **The rule penalty removes most rule-breaking.**
+   - Step 8's filter redraws under 0.1% of rows (step 7: whatever share breaks a rule).
+   - Step 8's boosting AUC is no more than 0.01 above that of 7 + filter.
+3. **Latent diffusion keeps fewer categories.** Step 9, with the decoding chosen on validation, has a lower column-mean category coverage than 7 + filter and 8, by at least 0.01. On Adult this came from argmax decoding, so if validation picks sampling, the expected answer is "no".
+4. **The GAN start helps.** Judged on boosting AUC (primary) and forest AUC (secondary), step 10 is compared with:
+   - pure diffusion at the same number of calls (`pure_matched`), and
+   - the refinement started from independent marginals.
+
+   If step 10 is lower than both by at least 0.01, the GAN start helps on quality. Otherwise any gain is in speed only.
 
 ## 8. One-time evaluation
 
-- `acs.py evaluate` writes a lock file before reading the test part and refuses to run if one exists.
+- `acs.py evaluate` first checks everything that needs no test rows:
+  - the split digest and the part sizes;
+  - every checkpoint, against the frozen configs and the split;
+  - that `selection.json` was made with these exact checkpoints (SHA-256);
+  - that every generator builds.
+- Only then does it write a lock file with those hashes, the seeds, the arms and the git state, and read the test part. It always runs all three seeds.
+- If the run stops part-way, a rerun with an identical state resumes and keeps the finished arms. The draws are seeded, so this is the same single evaluation. Any other state is refused.
 - Every result is reported, including ones that go against the hypotheses.
 - If a bug is found after the test was read, the fix and both sets of numbers are reported, and the rerun is marked as such.
 
@@ -108,4 +125,4 @@ Every checkpoint keeps the same contents as on Adult:
 - the GAN critic and the encoders;
 - the split (row positions and household ids).
 
-Training rows are the members. The test and reference parts are non-members from the same population, held out by household.
+Training rows are the members. The test and reference parts are non-members from the same population, held out by household. Validation rows are non-members too, but they drove model selection, so they are not a clean control. ACS checkpoints load only with `TABGEN_DATASET=acs` set, because the encoders read the column lists from `ladder.py`.

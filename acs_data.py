@@ -115,7 +115,8 @@ def load_splits(frame, path=SPLIT_PATH):
     """The saved parts, checked against a fresh rebuild so nobody can quietly re-split."""
     payload = json.loads(path.read_text(encoding="utf-8"))
     parts = {k: np.asarray(v, dtype=int) for k, v in payload["rows"].items()}
-    assert split_digest(parts) == payload["sha256"] == split_digest(make_splits(frame)), "split changed"
+    if not split_digest(parts) == payload["sha256"] == split_digest(make_splits(frame)):
+        raise RuntimeError("split changed")
     return parts
 
 
