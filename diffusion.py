@@ -441,7 +441,11 @@ class Sampler:
             self.vae.eval()
             z = self.model.sample(y, self.dim, self.config["sample_steps"], g)
             num, logits = self.vae.decode(z * self.z_std + self.z_mean)
-            x_num, x_cat = num, torch.stack([lg.argmax(1) for lg in logits], 1)
+            if self.config.get("decode", "argmax") == "sample":
+                cat = [torch.multinomial(torch.softmax(lg, 1), 1, generator=g)[:, 0] for lg in logits]
+            else:
+                cat = [lg.argmax(1) for lg in logits]
+            x_num, x_cat = num, torch.stack(cat, 1)
         return self.encoder.inverse(x_num.numpy(), x_cat.numpy())
 
     def __call__(self, labels, seed=0, stats=None, reject=None, draw=None):
@@ -604,6 +608,11 @@ def train_step(step, config, seed, fit, select, test, schema, log, split=None, m
     model_dir = Path(model_dir or MODEL_DIR)
     model_dir.mkdir(parents=True, exist_ok=True)
     torch.save(saved, model_dir / f"{step}_seed{seed}.pt")
+    if test is None:
+        # No test rows during training (ACS protocol): scoring happens once, later, in acs.py.
+        return {"rung": step, "seed": seed,
+                "config": {k: (list(v) if isinstance(v, tuple) else v) for k, v in config.items()},
+                "selected": best["row"], "history": history, "train_seconds": saved["train_seconds"]}
 
     # Final scoring, once, after selection. Same draws and seeds as ladder.train_rung.
     sampler = Sampler(saved)

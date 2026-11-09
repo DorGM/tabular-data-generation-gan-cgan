@@ -19,3 +19,4 @@ results/ladder/*.log
 models/
 results/holdout/*.log
 logs_abl/
+logs_acs/

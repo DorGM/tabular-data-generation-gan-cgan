@@ -28,6 +28,7 @@ Importing this module does not read data or train.
 import argparse
 import json
 import math
+import os
 import time
 from pathlib import Path
 
@@ -57,6 +58,15 @@ CATEGORICAL = ["workclass", "marital-status", "occupation", "relationship", "rac
 INTEGER = {"age", "education-num", "hours-per-week", "fnlwgt", "capital-gain", "capital-loss"}
 ZERO_INFLATED = {"capital-gain", "capital-loss"}
 SEEDS = (42, 68, 124)
+# TABGEN_DATASET=acs switches columns, rules and output folders to ACS California 2018
+# (acs_data.py, PROTOCOL.md). Adult stays the default, so nothing changes for it.
+DATASET = os.environ.get("TABGEN_DATASET", "adult")
+if DATASET == "acs":
+    import acs_data
+
+    NUMERIC, CATEGORICAL = list(acs_data.NUMERIC), list(acs_data.CATEGORICAL)
+    INTEGER, ZERO_INFLATED = set(acs_data.INTEGER), set()
+    OUT_DIR, MODEL_DIR = ROOT / "results" / "acs" / "train", ROOT / "models" / "acs"
 
 BASE = {
     "epochs": 120, "latent_dim": 64, "hidden_dim": 128, "batch_size": 64, "lr": 1e-3,
@@ -99,6 +109,10 @@ def rule_violations(frame):
     for value in rules.values():
         mask |= value.to_numpy()
     return mask, {name: int(value.sum()) for name, value in rules.items()}
+
+
+if DATASET == "acs":
+    rule_violations = acs_data.rule_violations  # noqa: F811
 
 
 # ---------------------------------------------------------------- data ----
@@ -427,6 +441,10 @@ def expected_violations(probs, levels):
     return penalty
 
 
+if DATASET == "acs":
+    expected_violations = acs_data.expected_violations  # noqa: F811
+
+
 # ------------------------------------------------------------ training ----
 
 def _draw(generator, transformer, conditioner, labels, seed):
@@ -563,6 +581,14 @@ def train_rung(rung, config, seed, fit, select, test, schema, log, model_dir=Non
     final_state = {"generator_state": _clone(generator), "critic_state": _clone(critic),
                    "opt_g_state": opt_g.state_dict(), "opt_d_state": opt_d.state_dict(), "epoch": config["epochs"]}
     generator.load_state_dict(best["state"])
+    model_dir = Path(model_dir or MODEL_DIR)
+    if test is None:
+        # No test rows during training (ACS protocol): scoring happens once, later, in acs.py.
+        _save_rung(model_dir, rung, seed, config, best, generator, transformer, conditioner, final_state,
+                   snapshots, losses, history, split)
+        return {"rung": rung, "seed": seed,
+                "config": {k: (list(v) if isinstance(v, tuple) else v) for k, v in config.items()},
+                "selected": best["row"], "history": history, "train_seconds": round(time.time() - started, 1)}
     # Final scoring, once, after selection.
     dev_synth = generate(generator, transformer, conditioner, select["income"].to_numpy(), seed=7)
     test_synth = generate(generator, transformer, conditioner, test["income"].to_numpy(), seed=9000 + seed)
@@ -575,7 +601,20 @@ def train_rung(rung, config, seed, fit, select, test, schema, log, model_dir=Non
         _design_matrix(test.drop(columns=["income"]), schema), test["income"].to_numpy(),
     )
     test_fidelity = score(test.drop(columns=["income"]), test_synth, schema)
-    model_dir = Path(model_dir or MODEL_DIR)
+    _save_rung(model_dir, rung, seed, config, best, generator, transformer, conditioner, final_state,
+               snapshots, losses, history, split)
+    return {
+        "rung": rung, "seed": seed, "config": {k: (list(v) if isinstance(v, tuple) else v) for k, v in config.items()},
+        "selected": best["row"], "history": history,
+        "final_detection_auc": final["mean_auc"], "utility_ratio": utility["ratio"],
+        "utility_auc_real": utility["auc_real"], "utility_auc_synthetic": utility["auc_synthetic"],
+        "test_ks": test_fidelity["ks"], "test_tv": test_fidelity["tv"], "test_coverage": test_fidelity["coverage"],
+        "test_violations": test_fidelity["violations"],
+    }
+
+
+def _save_rung(model_dir, rung, seed, config, best, generator, transformer, conditioner, final_state,
+               snapshots, losses, history, split):
     model_dir.mkdir(parents=True, exist_ok=True)
     # Everything the reverse-engineering study needs, so it can run without retraining:
     # the critic at the selected epoch, final weights and optimizer states (to resume),
@@ -590,14 +629,6 @@ def train_rung(rung, config, seed, fit, select, test, schema, log, model_dir=Non
         "final": final_state, "snapshots": snapshots, "losses": losses, "history": history,
         "split": split, "torch_version": torch.__version__,
     }, model_dir / f"{rung}_seed{seed}.pt")
-    return {
-        "rung": rung, "seed": seed, "config": {k: (list(v) if isinstance(v, tuple) else v) for k, v in config.items()},
-        "selected": best["row"], "history": history,
-        "final_detection_auc": final["mean_auc"], "utility_ratio": utility["ratio"],
-        "utility_auc_real": utility["auc_real"], "utility_auc_synthetic": utility["auc_synthetic"],
-        "test_ks": test_fidelity["ks"], "test_tv": test_fidelity["tv"], "test_coverage": test_fidelity["coverage"],
-        "test_violations": test_fidelity["violations"],
-    }
 
 
 def load_generator(path, reject=None):

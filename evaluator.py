@@ -14,7 +14,7 @@ from sklearn.metrics import roc_auc_score
 from sklearn.model_selection import StratifiedKFold
 from sklearn.neighbors import NearestNeighbors
 
-INTEGER_COLUMNS = ("age", "education-num", "hours-per-week")
+INTEGER_COLUMNS = ("age", "education-num", "hours-per-week", "AGEP", "WKHP")  # Adult, then ACS
 NONNEGATIVE_COLUMNS = ("capital-gain", "capital-loss")
 SPARSE_COLUMNS = ("capital-gain", "capital-loss")
 
@@ -31,6 +31,8 @@ COLUMN_DOMAIN_ATOL = {
     "capital-gain": 1e-2,
     "capital-loss": 1e-2,
     "hours-per-week": 1e-4,
+    "AGEP": 1e-4,
+    "WKHP": 1e-4,
 }
 INTEGER_ATOL = 1e-4
 NONNEGATIVE_ATOL = 1e-2
