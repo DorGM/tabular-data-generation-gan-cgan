@@ -18,6 +18,7 @@
   },
   "rule_violation_share": 0.06117560346416068,
   "rejected_share": null,
+  "sample_seconds_per_1k": 0.006722083043996477,
   "dcr_fit_median": 1.1459516404292205,
   "dcr_holdout_median": 1.1555802431117908,
   "closer_to_fit_share": 0.4975,

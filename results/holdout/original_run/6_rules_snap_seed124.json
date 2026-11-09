@@ -1,0 +1,38 @@
+{
+  "model": "6_rules_snap",
+  "seed": 124,
+  "n_holdout": 16281,
+  "detection_auc_rf": 0.7410763527582336,
+  "detection_auc_gb": 0.8032779437503154,
+  "utility_ratio": 0.9535588524945297,
+  "utility_auc_real": 0.9015103185550825,
+  "utility_auc_synthetic": 0.8596431448733624,
+  "ks": 0.03817333087648176,
+  "tv": 0.040731088823957824,
+  "coverage": 0.9841269841269842,
+  "hard_violations": 0,
+  "rule_violations": {
+    "spouse_sex": 0,
+    "spouse_married": 0,
+    "missing_link": 0
+  },
+  "rule_violation_share": 0.0,
+  "rejected_share": 0.020698974264480068,
+  "dcr_fit_median": 1.0510700022925903,
+  "dcr_holdout_median": 1.0355311231462045,
+  "closer_to_fit_share": 0.4893,
+  "exact_copy_share": 0.0,
+  "snap_k": 5,
+  "snap_selection_auc": {
+    "2": 0.7257788949759092,
+    "3": 0.7252374144270636,
+    "5": 0.7250255819902788,
+    "10": 0.7284660354870539,
+    "20": 0.7271072869768808,
+    "50": 0.7321835289707197
+  },
+  "snap_values_kept": {
+    "capital-gain": 68,
+    "capital-loss": 40
+  }
+}

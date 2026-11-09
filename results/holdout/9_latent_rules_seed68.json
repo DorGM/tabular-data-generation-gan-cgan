@@ -1,0 +1,26 @@
+{
+  "model": "9_latent_rules",
+  "seed": 68,
+  "n_holdout": 16281,
+  "detection_auc_rf": 0.6728242310178971,
+  "detection_auc_gb": 0.7005696353890685,
+  "utility_ratio": 0.9868348115283258,
+  "utility_auc_real": 0.9010565915197927,
+  "utility_auc_synthetic": 0.8891940116687902,
+  "ks": 0.02437401470016177,
+  "tv": 0.040476629199680605,
+  "coverage": 0.8855594270228416,
+  "hard_violations": 0,
+  "rule_violations": {
+    "spouse_sex": 0,
+    "spouse_married": 0,
+    "missing_link": 0
+  },
+  "rule_violation_share": 0.0,
+  "rejected_share": 0.010503040353786623,
+  "sample_seconds_per_1k": 2.0027689438517573,
+  "dcr_fit_median": 1.1476781864867873,
+  "dcr_holdout_median": 1.1429062449962966,
+  "closer_to_fit_share": 0.5101,
+  "exact_copy_share": 0.0
+}

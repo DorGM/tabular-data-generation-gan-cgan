@@ -1,0 +1,34 @@
+{
+  "model": "10_gan_refine",
+  "seed": 124,
+  "n_holdout": 16281,
+  "detection_auc_rf": 0.7011796437407567,
+  "detection_auc_gb": 0.7138095541895288,
+  "utility_ratio": 0.9757448960610685,
+  "utility_auc_real": 0.9015103185550825,
+  "utility_auc_synthetic": 0.8796440920765097,
+  "ks": 0.024763016194746454,
+  "tv": 0.039300850246123877,
+  "coverage": 0.9349206349206349,
+  "hard_violations": 0,
+  "rule_violations": {
+    "spouse_sex": 0,
+    "spouse_married": 0,
+    "missing_link": 0
+  },
+  "rule_violation_share": 0.0,
+  "rejected_share": 0.0006756341748049874,
+  "sample_seconds_per_1k": 1.0628896485630868,
+  "dcr_fit_median": 1.2260100378178462,
+  "dcr_holdout_median": 1.203486868741134,
+  "closer_to_fit_share": 0.492,
+  "exact_copy_share": 0.0,
+  "refine_t0": 400,
+  "refine_selection_auc": {
+    "25": 0.7251320508150282,
+    "50": 0.7282435930082181,
+    "100": 0.7237311568600405,
+    "200": 0.7110551775236869,
+    "400": 0.7084466544769072
+  }
+}
