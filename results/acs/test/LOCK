@@ -1,0 +1,53 @@
+{
+  "seeds": [
+    42,
+    68,
+    124
+  ],
+  "arms": [
+    "real_reference",
+    "5_rules",
+    "7_ddpm",
+    "7_ddpm+filter",
+    "8_ddpm_rules",
+    "9_latent_rules",
+    "10_gan_refine",
+    "10_marginals_refine",
+    "pure_20",
+    "pure_40",
+    "pure_matched"
+  ],
+  "split_sha256": "91322ba81fdc0a3e5cf730c787e87cba745cc8875a5261376d597c48f7cb4282",
+  "checkpoint_sha256": {
+    "5_rules_seed42": "3e97b396c360902736b941e942f29f85488fe85448cccd75ffa8819e82ae7af0",
+    "5_rules_seed68": "4b5702418c51182e189793bcc8f371186e27ace06357da4637b21fe6fc8a5302",
+    "5_rules_seed124": "69649bcde7ead52162a2e29d06b080f9f62f4c2f17890a2bd8f6b03d59c13c67",
+    "7_ddpm_seed42": "0a8d2bd7890b9ad8f6b94d0422d144d18759dc0ad1a6001c2c9cedb44aae45e2",
+    "7_ddpm_seed68": "959a2780bd51ede5ab6528c1a64ec3be9683afe977b3ea5ee8a2aae3f1cc9047",
+    "7_ddpm_seed124": "ffd01c93efceae93475d4b8f303e250a44a6569c6a6dbb111e8b9b1497e9cc81",
+    "8_ddpm_rules_seed42": "eefbe7862460ce09aa001e99fc0026762dc281c3a4cb6c24841e40db7c4913ac",
+    "8_ddpm_rules_seed68": "33c7252292c8ea29c25e5cb6bd3f9212aa03650a9f3eef08ff30dba88dafcb9d",
+    "8_ddpm_rules_seed124": "d42efd1c1a42efb6fe7b98b02508a921d0f27005b81d83c7c53cafa8df168f2d",
+    "9_latent_rules_seed42": "94a57fc44662b029c958487f7ce49465423b014be61e6c8a2c65ecb3380a88d9",
+    "9_latent_rules_seed68": "71d194b6fc8be15483f44678699c8f0b8fd193c822dd23e92e5c3271f1a42382",
+    "9_latent_rules_seed124": "a0bf75621aaf38680c658fbccab15961ba5044381bd6a34a56d22ef09fe27166"
+  },
+  "selection_sha256": "53e0c3cf2a2925394868f9b87775b1cb26dc7127b1e59eefe031ad8a3220972d",
+  "git": {
+    "head": "8a1ae8f1bad71caca28e66dd606d6ac87a525f1b",
+    "dirty_tracked_files": ""
+  },
+  "opened": "2026-11-10T07:50:17Z",
+  "environment": {
+    "cpu": "Intel(R) Xeon(R) Processor @ 2.10GHz",
+    "python": "3.13.18",
+    "torch": "2.9.1+cu128",
+    "numpy": "2.5.3",
+    "sklearn": "1.9.1",
+    "threads": 1,
+    "git": {
+      "head": "8a1ae8f1bad71caca28e66dd606d6ac87a525f1b",
+      "dirty_tracked_files": ""
+    }
+  }
+}

@@ -1,0 +1,100 @@
+{
+  "model": "9_latent_rules",
+  "seed": 42,
+  "n_holdout": 30000,
+  "detection_auc_rf": 0.7657836483333333,
+  "detection_auc_gb": 0.7591700994444444,
+  "utility_ratio": 0.9465538924509898,
+  "utility_auc_real": 0.8822159012111771,
+  "utility_auc_synthetic": 0.8350648952735975,
+  "ks": 0.02980000000000002,
+  "tv": 0.06949374999999999,
+  "coverage": 0.9858475728549395,
+  "hard_violations": 0,
+  "rule_violations": {
+    "spouse_married": 0,
+    "partner_unmarried": 0,
+    "military_federal": 0
+  },
+  "rule_violation_share": 0.0,
+  "rejected_share": 0.0023333333333333335,
+  "sample_seconds_per_1k": 2.0654751777648928,
+  "dcr_fit_median": 8.242428028435484,
+  "dcr_holdout_median": 8.327604038068616,
+  "closer_to_fit_share": 0.5063,
+  "exact_copy_share": 0.0002,
+  "decode": "sample",
+  "denoiser_calls": 99,
+  "rare_category_recall": 0.9568345323741008,
+  "rare_category_count": 695,
+  "by_column": {
+    "COW": {
+      "coverage": 1.0,
+      "rare_recall": 1.0,
+      "tv": 0.039033333333333343
+    },
+    "SCHL": {
+      "coverage": 1.0,
+      "rare_recall": 1.0,
+      "tv": 0.05529999999999999
+    },
+    "MAR": {
+      "coverage": 1.0,
+      "rare_recall": null,
+      "tv": 0.03526666666666665
+    },
+    "OCCP": {
+      "coverage": 0.9744094488188977,
+      "rare_recall": 0.973305954825462,
+      "tv": 0.1353666666666667
+    },
+    "POBP": {
+      "coverage": 0.9123711340206185,
+      "rare_recall": 0.907608695652174,
+      "tv": 0.08208333333333334
+    },
+    "RELP": {
+      "coverage": 1.0,
+      "rare_recall": 1.0,
+      "tv": 0.15689999999999996
+    },
+    "SEX": {
+      "coverage": 1.0,
+      "rare_recall": null,
+      "tv": 0.03250000000000003
+    },
+    "RAC1P": {
+      "coverage": 1.0,
+      "rare_recall": 1.0,
+      "tv": 0.019499999999999986
+    }
+  },
+  "correlation_mae": 0.004184213578336295,
+  "still_broken_after_filter": 0,
+  "dev_copies_of_train": 17,
+  "test_synth_copies_of_train": 57,
+  "utility_synth_copies_of_train": 41,
+  "generated_rows_checked": 68000,
+  "test_unseen_category_share": {
+    "COW": 0.0,
+    "SCHL": 0.0,
+    "MAR": 0.0,
+    "OCCP": 0.0008,
+    "POBP": 0.0009666666666666667,
+    "RELP": 0.0,
+    "SEX": 0.0,
+    "RAC1P": 0.0
+  },
+  "environment": {
+    "cpu": "Intel(R) Xeon(R) Processor @ 2.10GHz",
+    "python": "3.13.18",
+    "torch": "2.9.1+cu128",
+    "numpy": "2.5.3",
+    "sklearn": "1.9.1",
+    "threads": 1,
+    "git": {
+      "head": "8a1ae8f1bad71caca28e66dd606d6ac87a525f1b",
+      "dirty_tracked_files": ""
+    }
+  }
+}

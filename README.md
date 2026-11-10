@@ -1,6 +1,6 @@
 # Synthetic Tabular Data with GANs and Diffusion on UCI Adult
 
-Conditional GANs and diffusion models that generate realistic synthetic census rows, evaluated on the 16,281 rows of the official Adult test file, which no model trained on. The best models reach a detection AUC of about **0.70 to 0.73**, where 0.5 means indistinguishable and 1.0 means always caught. That holds for both a random-forest and a gradient-boosting detector. These models keep **96 to 98%** of real-data utility, every row satisfies the domain rules, and at most one of the roughly 127,000 rows generated per model during evaluation is an exact copy of a training row. Under the same protocol, SDV's CTGAN scores 0.935 and TVAE 0.937.
+Conditional GANs and diffusion models that generate realistic synthetic census rows, evaluated on the 16,281 rows of the official Adult test file, which no model trained on. The best models reach a detection AUC of about **0.70 to 0.73**, where 0.5 means indistinguishable and 1.0 means always caught. That holds for both a random-forest and a gradient-boosting detector. These models keep **96 to 98%** of real-data utility, every row satisfies the domain rules, and at most one of the roughly 127,000 rows generated per model during evaluation is an exact copy of a training row. Under the same protocol, SDV's CTGAN scores 0.935 and TVAE 0.937. A pre-registered check on fresh data (ACS California 2018) confirms that diffusion with a filter, latent diffusion and the GAN-diffusion hybrid beat the GAN, but shows that the training-time rule penalty does not carry over.
 
 ## Why I built this
 
@@ -79,6 +79,52 @@ Full table, including categorical TV, exact copies, sampling time and the extra 
   - For steps 7 + filter and 8 it is 0.514 to 0.517 in two of the three seeds, which is about two standard errors above 0.5. This slight signal is a question for the planned membership-inference study, not a finding yet.
 - **Snapping capital values adds nothing measurable** (0.747 vs 0.749), so the GAN keeps step 5, where everything except the domain rules is learned.
 
+## Fresh check: ACS California 2018
+
+The Adult test file is a reused benchmark, so the main comparisons were repeated on data that played no part in any design decision.
+
+- **Data:** the folktables ACSIncome task on the 2018 ACS for California. The label is income over $50,000. There are 10 columns, including 518 occupation codes and 201 birthplace codes.
+- **Splits:** fixed and household-grouped: 30,000 people for training, 8,000 for validation and 30,000 for test. Real reference rows stand in for a perfect generator, and a reserve is kept untouched for a later round.
+- **Protocol:** every model was retrained on the training part with the Adult configs. Nothing was tuned. Every choice was made on validation, and the test part was read once. The protocol, hypotheses and decision rules were written and pushed before that ([`PROTOCOL.md`](PROTOCOL.md)).
+
+| Model (mean ± SD, 3 seeds) | Detection AUC, forest ↓ | Detection AUC, boosting ↓ | Utility ↑ | Category coverage ↑ | Rows the filter redraws |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Real reference rows | 0.502 ± 0.001 | 0.500 ± 0.003 | 1.000 | 0.987 | - |
+| 5 GAN + rules | 0.743 ± 0.009 | 0.774 ± 0.012 | 0.969 | 0.988 | 0.09% |
+| 7 Diffusion + rule filter | 0.734 ± 0.006 | 0.738 ± 0.004 | 0.982 | 0.992 | 10.3% |
+| 8 Diffusion + rule penalty + filter | 0.815 ± 0.005 | 0.817 ± 0.005 | 0.972 | 0.991 | 0.03% |
+| 9 Latent diffusion + rules | **0.722 ± 0.039** | **0.708 ± 0.049** | 0.961 | 0.981 | 0.21% |
+| 10 GAN rows refined by step 8 | 0.727 ± 0.013 | 0.715 ± 0.008 | 0.968 | 0.988 | 0.13% |
+
+Full table, with the control runs, per-column coverage, copies and sampling time: [`results/acs/SUMMARY.md`](results/acs/SUMMARY.md).
+
+**Pre-registered hypotheses.** Boosting AUC is the primary metric, and a difference counts only if it is at least 0.01.
+
+1. **Diffusion beats the GAN: not supported.**
+   - Diffusion with the filter alone beats the GAN (0.738 vs 0.774).
+   - Diffusion with the rule penalty is worse than the GAN (0.817).
+2. **The rule penalty removes rule-breaking at no cost: not supported.**
+   - The penalty cuts the share of rows the filter redraws from 10.3% to 0.03%, as on Adult.
+   - But it raises boosting AUC by 0.079.
+   - The likely cause is the relationship column: its distribution moves far from the real one (TV 0.25, against 0.08 with the filter alone).
+   - The penalty multiplies per-column probabilities. It therefore punishes a model that is unsure whether a person is a spouse or a partner, not only rows that break a rule. On Adult the same penalty cost nothing.
+3. **Latent diffusion keeps fewer categories: supported, at the margin.**
+   - Coverage is 0.981, against 0.991 for steps 7 and 8.
+   - This holds even though validation chose softmax-sampled decoding in all three seeds. Sampling also gave a much lower validation AUC than argmax, so the Adult decoding finding carried over.
+4. **The GAN start helps: supported, with a caveat.**
+   - Validation chose the lowest noise level (25 of 1,000) in every seed. Step 10 therefore makes only 2 denoiser calls, so the matched pure-diffusion control (2 calls from noise) is degenerate.
+   - The stronger evidence: step 10 (0.715) also beats step 8 from noise with 20, 40 or 100 calls (0.815 to 0.820), the independent-marginals start (0.819), and step 7 + filter (0.738).
+
+**Other results**
+
+- **Latent diffusion (9) and the hybrid (10) are the best models.** They are within the 0.01 threshold of each other. Latent diffusion varies much more between seeds (SD 0.049 vs 0.008).
+- **Copies are rarer than in real data.**
+  - With only 10 columns, 1.2% of real reference rows equal some training row.
+  - For the models, the rate is 0.17 to 0.47% of all generated rows.
+  - The memorization share stays between 0.50 and 0.51 for every model in the table.
+- **Sampling times on ACS were measured with four evaluations running in parallel**, so only their ratios are meaningful.
+- **What did not transfer from Adult:** the rule penalty, and the advantage of step 8 over the GAN. **What did transfer:** diffusion with a filter beats the GAN, latent diffusion and the hybrid are the most realistic, and argmax decoding is the weak point of the latent model.
+
 ## Method
 
 ### Data and splits
@@ -129,6 +175,9 @@ Full table, including categorical TV, exact copies, sampling time and the extra 
 |-- ladder.py               # GAN steps 0-5: generator, training, domain rules, load_generator
 |-- diffusion.py            # Diffusion steps 7-9: TabDDPM-style and latent (TabSyn-style) models, load_diffusion
 |-- evaluate_holdout.py     # Scores every model on the official test file; builds steps 6 and 10
+|-- acs.py, acs_data.py     # Fresh ACS California 2018 evaluation: household splits, rules, train/select/evaluate
+|-- summarize_acs.py        # Builds results/acs/SUMMARY.md with the pre-registered verdicts
+|-- PROTOCOL.md             # The ACS protocol, written before the test part was read
 |-- ablations.py            # Control runs on saved models: exact copies, step 9 decoding, step 10 start
 |-- summarize_ablations.py  # Builds results/ablations/SUMMARY.md
 |-- summarize_holdout.py    # Builds results/holdout/SUMMARY.md and the figure
@@ -141,6 +190,7 @@ Full table, including categorical TV, exact copies, sampling time and the extra 
 `-- results/
     |-- holdout/            # Main results: per-run JSON, SUMMARY.md, holdout_results.png
     |-- ablations/          # Control runs: exact copies, step 9 decoding, step 10 start
+    |-- acs/                # ACS training logs, validation choices, one-time test results, SUMMARY.md
     |-- ladder/             # Internal test split results for steps 0-9 and SDV
     `-- legacy/, stage1/, stage2/, metrics_schema.json   # baseline study records
 ```
@@ -161,6 +211,10 @@ python evaluate_holdout.py       # score everything on the test file (fits SDV m
 python summarize_holdout.py      # rebuild the table and figure
 python ablations.py copies       # control runs on the saved models (also: decoding, hybrid)
 python summarize_ablations.py    # rebuild results/ablations/SUMMARY.md
+python acs_data.py               # ACS: build the household splits (needs data/acs/psam_p06.csv from census.gov)
+python acs.py train              # ACS: train steps 5, 7, 8, 9 (CPU, 1.5 to 5 hours per run)
+python acs.py select             # ACS: validation-only choices
+python acs.py evaluate           # ACS: the one-time test evaluation
 ```
 
 `requirements.txt` pins `torch==2.14.1+cpu`. If pip cannot find that build, use the PyTorch CPU wheel index (`--index-url https://download.pytorch.org/whl/cpu`).
@@ -196,7 +250,7 @@ The GAN checkpoints of steps 3 and 5 and all diffusion checkpoints also keep wha
 - Latent diffusion (step 9) misses some rare categories, because its VAE decoder never gives them the top probability and decoding takes the argmax. Steps 8 and 10 miss a few (coverage 0.89, 0.94 and 0.95, against 0.99 for real rows).
 - The official test file is a reused benchmark. No checkpoint, threshold or noise level was selected on it, but which steps to build, and their grids and hyperparameters, were decided after seeing earlier results on it.
 - Three seeds per model, and the same seed differs by about 0.01 AUC across CPUs. Gaps of 0.01 to 0.02 are consistent in direction at best, not established.
-- The domain rules are specific to Adult. They are kept in one function (`rule_violations`), separate from the models.
+- The domain rules are specific to each dataset. They are kept in one function per dataset (`rule_violations`), separate from the models. The training-time rule penalty helped on Adult but hurt on ACS, so it should be checked per dataset.
 - A detector still reaches about 0.70, so the synthetic rows are not indistinguishable from real ones.
 - The memorization check is a distance test, not a formal privacy guarantee.
 
