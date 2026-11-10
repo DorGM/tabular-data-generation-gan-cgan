@@ -1,6 +1,6 @@
 # Synthetic Tabular Data with GANs and Diffusion on UCI Adult
 
-Conditional GANs and diffusion models that generate realistic synthetic census rows, evaluated on the 16,281 rows of the official Adult test file, which no model trained on. The best models reach a detection AUC of about **0.70 to 0.73**, where 0.5 means indistinguishable and 1.0 means always caught. That holds for both a random-forest and a gradient-boosting detector. These models keep **96 to 98%** of real-data utility, every row satisfies the domain rules, and at most one of the roughly 127,000 rows generated per model during evaluation is an exact copy of a training row. Under the same protocol, SDV's CTGAN scores 0.935 and TVAE 0.937. A pre-registered check on fresh data (ACS California 2018) confirms that diffusion with a filter, latent diffusion and the GAN-diffusion hybrid beat the GAN, but shows that the training-time rule penalty does not carry over.
+Conditional GANs and diffusion models that generate realistic synthetic census rows, evaluated on the 16,281 rows of the official Adult test file, which no model trained on. The best models reach a detection AUC of about **0.70 to 0.73**, where 0.5 means indistinguishable and 1.0 means always caught. That holds for both a random-forest and a gradient-boosting detector. These models keep **96 to 98%** of real-data utility, every row satisfies the domain rules, and at most one of the roughly 127,000 rows generated per model during evaluation is an exact copy of a training row. Under the same protocol, SDV's CTGAN scores 0.935 and TVAE 0.937. A fresh check on ACS California 2018, under a pre-registered protocol, gives mixed results. Diffusion with a rule filter, latent diffusion and the GAN-diffusion hybrid have a lower boosting-detector AUC than the GAN (0.74, 0.71 and 0.72 vs 0.77). But the training-time rule penalty made diffusion worse than the GAN (0.82), so the pre-registered hypothesis that diffusion beats the GAN was not supported.
 
 ## Why I built this
 
@@ -101,29 +101,33 @@ Full table, with the control runs, per-column coverage, copies and sampling time
 **Pre-registered hypotheses.** Boosting AUC is the primary metric, and a difference counts only if it is at least 0.01.
 
 1. **Diffusion beats the GAN: not supported.**
-   - Diffusion with the filter alone beats the GAN (0.738 vs 0.774).
+   - Diffusion with the filter alone beats the GAN on boosting (0.738 vs 0.774). On the forest detector the gap is 0.734 vs 0.743, under the threshold.
    - Diffusion with the rule penalty is worse than the GAN (0.817).
-2. **The rule penalty removes rule-breaking at no cost: not supported.**
+2. **The rule penalty removes most rule-breaking: not supported.**
    - The penalty cuts the share of rows the filter redraws from 10.3% to 0.03%, as on Adult.
-   - But it raises boosting AUC by 0.079.
-   - The likely cause is the relationship column: its distribution moves far from the real one (TV 0.25, against 0.08 with the filter alone).
-   - The penalty multiplies per-column probabilities. It therefore punishes a model that is unsure whether a person is a spouse or a partner, not only rows that break a rule. On Adult the same penalty cost nothing.
-3. **Latent diffusion keeps fewer categories: supported, at the margin.**
-   - Coverage is 0.981, against 0.991 for steps 7 and 8.
-   - This holds even though validation chose softmax-sampled decoding in all three seeds. Sampling also gave a much lower validation AUC than argmax, so the Adult decoding finding carried over.
-4. **The GAN start helps: supported, with a caveat.**
-   - Validation chose the lowest noise level (25 of 1,000) in every seed. Step 10 therefore makes only 2 denoiser calls, so the matched pure-diffusion control (2 calls from noise) is degenerate.
-   - The stronger evidence: step 10 (0.715) also beats step 8 from noise with 20, 40 or 100 calls (0.815 to 0.820), the independent-marginals start (0.819), and step 7 + filter (0.738).
+   - But it raises boosting AUC by 0.079, far above the 0.01 allowed.
+   - The penalty made step 8 almost stop generating spouses and unmarried partners. In a validation draw, 0.2% of rows were spouses (22% in training) and none were partners (3.4%). The relationship column's TV from the real distribution is 0.25, about the 25% of people in those two codes, against 0.08 for step 7 with the filter and 0.02 without it. The filter alone also removes some spouses, because it redraws the rows that break a rule.
+   - Why: the penalty multiplies per-column probabilities and is applied at every noise level. When the model cannot yet tell whether a person is married, the only way to lower it is to stop predicting "spouse" or "partner". The GAN applies it to one confident output per row, and on Adult the same penalty cost nothing.
+   - Every arm that runs step 8 from high noise shows the same collapse and an AUC of 0.815 to 0.82, so it coincides with the higher detection AUC. It was not isolated as the cause.
+3. **Latent diffusion keeps fewer categories: supported, by 0.0101 against a 0.01 threshold.**
+   - Coverage is 0.981, against 0.992 and 0.991 for steps 7 and 8, and 0.987 for real reference rows. The gap is mostly in birthplaces (0.935 vs 0.957 for real rows).
+   - The protocol expected "no" if validation chose softmax sampling, because on Adult the loss came from argmax decoding. Validation chose sampling in every seed (it also gave a much lower validation AUC than argmax). So on ACS the loss of categories is not explained by argmax decoding alone.
+   - The 0.01 threshold was set from AUC rerun noise, not from coverage noise.
+4. **The GAN start helps: supported, with caveats.** Forest AUC agrees with boosting.
+   - Validation chose the lowest noise level tried (25 of 1,000) in every seed, and validation AUC rose steadily with the noise level, so a smaller level might do better still. Step 10 therefore makes only 2 denoiser calls, and the matched pure-diffusion control (2 calls from noise) is degenerate.
+   - At this level, step 10 is the GAN plus a light clean-up by step 8. In a validation draw it changed age in about half the rows and hours in a third, but about 1% of category cells.
+   - The independent-marginals start chose high noise levels (800, 100, 800), so it goes through the same spouse and partner collapse as step 8. That makes it a weak control here.
+   - Not pre-registered, but consistent: step 10 (0.715) also beats step 8 from noise with 20, 40 or 100 calls (0.815 to 0.820) and step 7 + filter (0.738).
 
 **Other results**
 
-- **Latent diffusion (9) and the hybrid (10) are the best models.** They are within the 0.01 threshold of each other. Latent diffusion varies much more between seeds (SD 0.049 vs 0.008).
+- **On the boosting detector, latent diffusion (9) and the hybrid (10) are the best models.** They are within the 0.01 threshold of each other. On the forest detector, 9, 10 and 7 + filter are within 0.012 of each other. Latent diffusion varies much more between seeds (SD 0.049 vs 0.008), and the seed that was worst on validation is also worst on test.
 - **Copies are rarer than in real data.**
   - With only 10 columns, 1.2% of real reference rows equal some training row.
-  - For the models, the rate is 0.17 to 0.47% of all generated rows.
-  - The memorization share stays between 0.50 and 0.51 for every model in the table.
-- **Sampling times on ACS were measured with four evaluations running in parallel**, so only their ratios are meaningful.
-- **What did not transfer from Adult:** the rule penalty, and the advantage of step 8 over the GAN. **What did transfer:** diffusion with a filter beats the GAN, latent diffusion and the hybrid are the most realistic, and argmax decoding is the weak point of the latent model.
+  - For the models, the rate is 0.19 to 0.47% of all generated rows. The GAN and step 10 copy about twice as often as the diffusion models (0.41 and 0.47% vs about 0.2%).
+  - The memorization share averages 0.505 to 0.511 per model (0.49 to 0.52 per seed), inside the spread seen for real reference rows (0.47 to 0.50).
+- **Sampling times on ACS were measured with four evaluations running in parallel** on four CPUs, so they are rough. Compare orders of magnitude only.
+- **What did not transfer from Adult:** the rule penalty, and the advantage of step 8 over the GAN. **What did transfer:** diffusion with a filter beats the GAN on boosting, and latent diffusion and the hybrid are the most realistic on boosting. Latent diffusion again loses some rare categories, but on ACS this happens even with sampled decoding.
 
 ## Method
 
@@ -251,6 +255,7 @@ The GAN checkpoints of steps 3 and 5 and all diffusion checkpoints also keep wha
 - The official test file is a reused benchmark. No checkpoint, threshold or noise level was selected on it, but which steps to build, and their grids and hyperparameters, were decided after seeing earlier results on it.
 - Three seeds per model, and the same seed differs by about 0.01 AUC across CPUs. Gaps of 0.01 to 0.02 are consistent in direction at best, not established.
 - The domain rules are specific to each dataset. They are kept in one function per dataset (`rule_violations`), separate from the models. The training-time rule penalty helped on Adult but hurt on ACS, so it should be checked per dataset.
+- The ACS check uses one fixed household split and three training seeds. Hyperparameters, including the penalty weight of 1, were carried over from Adult without tuning, which may be unfair to step 8. ACS has its own three rules, so "the penalty does not carry over" holds for this penalty form on these rules. Survey weights were ignored, quality is judged by detection, utility and marginals only, and step 10's noise level was chosen at the edge of its grid.
 - A detector still reaches about 0.70, so the synthetic rows are not indistinguishable from real ones.
 - The memorization check is a distance test, not a formal privacy guarantee.
 
