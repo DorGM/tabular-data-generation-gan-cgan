@@ -84,5 +84,13 @@ class Rules(unittest.TestCase):
         self.assertTrue(np.array_equal(expected.numpy() > 0, mask))
 
 
+class Resume(unittest.TestCase):
+    def test_gan_resume_is_identical_to_an_uninterrupted_run(self):
+        import subprocess
+        out = subprocess.run([sys.executable, str(ROOT / "tests" / "resume_check.py")], capture_output=True,
+                             text=True, timeout=600)
+        self.assertIn("IDENTICAL", out.stdout, out.stderr[-2000:])
+
+
 if __name__ == "__main__":
     unittest.main()

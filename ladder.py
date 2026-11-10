@@ -507,7 +507,10 @@ def _clone(module):
     return {k: v.detach().clone() for k, v in module.state_dict().items()}
 
 
-def train_rung(rung, config, seed, fit, select, test, schema, log, model_dir=None, split=None):
+def train_rung(rung, config, seed, fit, select, test, schema, log, model_dir=None, split=None, resume_path=None):
+    """resume_path: optional file where the full training state is saved after every scoring epoch.
+    If it exists, training continues from it, with every random number generator restored, so the
+    result is the same as an uninterrupted run (tests/test_acs.py checks this)."""
     torch.manual_seed(seed)
     np.random.seed(seed)
     transformer = Transformer(config, seed).fit(fit)
@@ -525,8 +528,20 @@ def train_rung(rung, config, seed, fit, select, test, schema, log, model_dir=Non
     history, best = [], None
     losses, snapshots, keep = [], {}, _snapshot_epochs(config["epochs"])
     select_features = select.drop(columns=["income"])
-    started = time.time()
-    for epoch in range(1, config["epochs"] + 1):
+    started, first_epoch = time.time(), 1
+    if resume_path is not None and Path(resume_path).exists():
+        state = torch.load(resume_path, map_location="cpu", weights_only=False)
+        generator.load_state_dict(state["generator"])
+        critic.load_state_dict(state["critic"])
+        opt_g.load_state_dict(state["opt_g"])
+        opt_d.load_state_dict(state["opt_d"])
+        conditioner.rng.bit_generator.state = state["conditioner_rng"]
+        torch.set_rng_state(state["torch_rng"])
+        np.random.set_state(state["numpy_rng"])
+        history, best, losses, snapshots = state["history"], state["best"], state["losses"], state["snapshots"]
+        first_epoch, started = state["epoch"] + 1, time.time() - state["elapsed"]
+        log(f"{rung} seed {seed}: resumed after epoch {state['epoch']}")
+    for epoch in range(first_epoch, config["epochs"] + 1):
         sum_d = sum_g = 0.0
         for _step in range(steps):
             for _ in range(config["critic_steps"]):
@@ -578,6 +593,15 @@ def train_rung(rung, config, seed, fit, select, test, schema, log, model_dir=Non
             key = (row["violations"] > 0, row["selection_auc"], epoch)
             if best is None or key < best["key"]:
                 best = {"key": key, "row": row, "state": _clone(generator), "critic_state": _clone(critic)}
+            if resume_path is not None:
+                tmp = Path(str(resume_path) + ".tmp")
+                torch.save({"epoch": epoch, "elapsed": time.time() - started,
+                            "generator": generator.state_dict(), "critic": critic.state_dict(),
+                            "opt_g": opt_g.state_dict(), "opt_d": opt_d.state_dict(),
+                            "conditioner_rng": conditioner.rng.bit_generator.state,
+                            "torch_rng": torch.get_rng_state(), "numpy_rng": np.random.get_state(),
+                            "history": history, "best": best, "losses": losses, "snapshots": snapshots}, tmp)
+                tmp.replace(resume_path)
     final_state = {"generator_state": _clone(generator), "critic_state": _clone(critic),
                    "opt_g_state": opt_g.state_dict(), "opt_d_state": opt_d.state_dict(), "epoch": config["epochs"]}
     generator.load_state_dict(best["state"])

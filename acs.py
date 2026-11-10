@@ -84,8 +84,10 @@ def run_train(models, seeds):
                 print("skip", out.name, flush=True)
                 continue
             if name in ladder.RUNGS:
+                resume = MODEL_DIR / "resume" / f"{name}_seed{seed}.pt"  # survives a container restart
+                resume.parent.mkdir(parents=True, exist_ok=True)
                 result = ladder.train_rung(name, dict(ladder.RUNGS[name]), seed, train, validation, None, schema, log,
-                                           model_dir=MODEL_DIR, split=split)
+                                           model_dir=MODEL_DIR, split=split, resume_path=resume)
             else:
                 result = diffusion.train_step(name, dict(diffusion.STEPS[name]), seed, train, validation, None,
                                               schema, log, split=split, model_dir=MODEL_DIR)
