@@ -68,7 +68,8 @@ Full table, including categorical TV, exact copies, sampling time and the extra 
   - **Step 8** is the simplest model that meets every target.
 - **Without rules, diffusion breaks them often.** 23% of step 7's rows break a domain rule, against 7% for the comparable GAN step.
   - The rule filter alone fixes realism (0.764 → 0.711).
-  - Adding the rule penalty in training (step 8) brings the share of rows the filter has to redraw from 23% to 0.02–0.04%, at the same realism.
+  - Adding the rule penalty in training (step 8) brings the share of rows the filter has to redraw from 23% to 0.02–0.04%, at the same detection AUC.
+  - But it does so by no longer generating wives: step 8 has 0% "Wife" rows in all three seeds, against 4.7% in the real data. The filter alone already cuts them to 0.7%, because most of the wives step 7 generates break a rule and are redrawn as other rows. The detectors barely notice a 4.7% group, so the AUC hides this.
   - For the GAN, the penalty also improves realism: the filter alone gives 0.767, and the penalty with the filter gives 0.749.
 - **Speed:** a GAN draws 1,000 rows in about 0.04 seconds on one CPU thread. The diffusion steps take 2.2 to 2.7 seconds, or 3.5 for step 7 + filter, which redraws 23% of its rows. Step 10 takes 0.9 seconds.
 - **Copies are rarer than in real data, and the distance test shows no memorization.** Every row generated during evaluation was checked against every fit-slice row: about 127,000 rows per model, from three draws and three seeds.
@@ -107,7 +108,7 @@ Full table, with the control runs, per-column coverage, copies and sampling time
    - The penalty cuts the share of rows the filter redraws from 10.3% to 0.03%, as on Adult.
    - But it raises boosting AUC by 0.079, far above the 0.01 allowed.
    - The penalty made step 8 almost stop generating spouses and unmarried partners. In a validation draw, 0.2% of rows were spouses (22% in training) and none were partners (3.4%). The relationship column's TV from the real distribution is 0.25, about the 25% of people in those two codes, against 0.08 for step 7 with the filter and 0.02 without it. The filter alone also removes some spouses, because it redraws the rows that break a rule.
-   - Why: the penalty multiplies per-column probabilities and is applied at every noise level. When the model cannot yet tell whether a person is married, the only way to lower it is to stop predicting "spouse" or "partner". The GAN applies it to one confident output per row, and on Adult the same penalty cost nothing.
+   - Why: the penalty multiplies per-column probabilities and is applied at every noise level. When the model cannot yet tell whether a person is married, the only way to lower it is to stop predicting "spouse" or "partner". The GAN applies it to one confident output per row. On Adult the same penalty removed every "Wife" row (4.7% of real rows), which the detectors barely noticed; on ACS the two affected codes cover 25% of rows.
    - Every arm that runs step 8 from high noise shows the same collapse and an AUC of 0.815 to 0.82, so it coincides with the higher detection AUC. It was not isolated as the cause.
 3. **Latent diffusion keeps fewer categories: supported, by 0.0101 against a 0.01 threshold.**
    - Coverage is 0.981, against 0.992 and 0.991 for steps 7 and 8, and 0.987 for real reference rows. The gap is mostly in birthplaces (0.935 vs 0.957 for real rows).
@@ -127,7 +128,7 @@ Full table, with the control runs, per-column coverage, copies and sampling time
   - For the models, the rate is 0.19 to 0.47% of all generated rows. The GAN and step 10 copy about twice as often as the diffusion models (0.41 and 0.47% vs about 0.2%).
   - The memorization share averages 0.505 to 0.511 per model (0.49 to 0.52 per seed), inside the spread seen for real reference rows (0.47 to 0.50).
 - **Sampling times on ACS were measured with four evaluations running in parallel** on four CPUs, so they are rough. Compare orders of magnitude only.
-- **What did not transfer from Adult:** the rule penalty, and the advantage of step 8 over the GAN. **What did transfer:** diffusion with a filter beats the GAN on boosting, and latent diffusion and the hybrid are the most realistic on boosting. Latent diffusion again loses some rare categories, but on ACS this happens even with sampled decoding.
+- **What did not transfer from Adult:** the advantage of step 8 over the GAN. The penalty's failure is the same on both datasets (it removes the rare code a rule touches) but costs much more realism on ACS. **What did transfer:** diffusion with a filter beats the GAN on boosting, and latent diffusion and the hybrid are the most realistic on boosting. Latent diffusion again loses some rare categories, but on ACS this happens even with sampled decoding.
 
 ## Method
 
@@ -254,7 +255,7 @@ The GAN checkpoints of steps 3 and 5 and all diffusion checkpoints also keep wha
 - Latent diffusion (step 9) misses some rare categories, because its VAE decoder never gives them the top probability and decoding takes the argmax. Steps 8 and 10 miss a few (coverage 0.89, 0.94 and 0.95, against 0.99 for real rows).
 - The official test file is a reused benchmark. No checkpoint, threshold or noise level was selected on it, but which steps to build, and their grids and hyperparameters, were decided after seeing earlier results on it.
 - Three seeds per model, and the same seed differs by about 0.01 AUC across CPUs. Gaps of 0.01 to 0.02 are consistent in direction at best, not established.
-- The domain rules are specific to each dataset. They are kept in one function per dataset (`rule_violations`), separate from the models. The training-time rule penalty helped on Adult but hurt on ACS, so it should be checked per dataset.
+- The domain rules are specific to each dataset. They are kept in one function per dataset (`rule_violations`), separate from the models. The training-time rule penalty for diffusion removes the rare codes its rules touch (wives on Adult, spouses and partners on ACS), because it is computed from per-column probabilities at every noise level. Other ways to apply the rules (a joint column of valid combinations, the penalty at low noise only, or a penalty on sampled rows) are not yet tested.
 - The ACS check uses one fixed household split and three training seeds. Hyperparameters, including the penalty weight of 1, were carried over from Adult without tuning, which may be unfair to step 8. ACS has its own three rules, so "the penalty does not carry over" holds for this penalty form on these rules. Survey weights were ignored, quality is judged by detection, utility and marginals only, and step 10's noise level was chosen at the edge of its grid.
 - A detector still reaches about 0.70, so the synthetic rows are not indistinguishable from real ones.
 - The memorization check is a distance test, not a formal privacy guarantee.
