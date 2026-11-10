@@ -228,7 +228,7 @@ def _git_state():
     return {"head": run("rev-parse", "HEAD"), "dirty_tracked_files": run("status", "--porcelain", "-uno")}
 
 
-def run_evaluate(seeds):
+def run_evaluate(seeds, worker=(0, 1)):
     """The one-time test evaluation. Everything that needs no test rows is checked before the lock."""
     from ablations import exact_copy_count
     from evaluate_holdout import draw_three, score_draws
@@ -262,6 +262,8 @@ def run_evaluate(seeds):
              "selection_sha256": file_sha256(selection_path), "git": _git_state()}
 
     # --- the lock. A rerun with the same state resumes (draws are seeded, so it is the same evaluation).
+    if worker[0] > 0 and not lock.exists():
+        raise SystemExit("start worker 0 first; it writes the lock")
     if lock.exists():
         old = json.loads(lock.read_text())
         if {k: old.get(k) for k in state} != state:
@@ -277,41 +279,43 @@ def run_evaluate(seeds):
     schema = schema_for(train)
     val_x, test_x = validation[FEATURES], test[FEATURES]
     unseen = {c: float((~test[c].isin(schema["categories"][c])).mean()) for c in ladder.CATEGORICAL}
-    for seed in seeds:
-        for arm in ARMS:
-            out = test_dir / f"{arm}_seed{seed}.json"
-            if out.exists():
-                continue
-            stats, extra = {}, {}
-            if arm == "real_reference":
-                rng = np.random.default_rng(seed)
-                pool = reference.iloc[rng.permutation(len(reference))].reset_index(drop=True)
-                dev = pool.iloc[:len(validation)].reset_index(drop=True)
-                test_synth = pool.iloc[len(validation):len(validation) + len(test)].reset_index(drop=True)
-                utility_synth = test_synth.iloc[:len(train)]
-            else:
-                generator, extra = _generator(arm, seed, train, choices[str(seed)])
-                dev, test_synth, utility_synth = draw_three(generator, seed, train, validation, test, stats)
-            d = {"fit": train, "dev_real": val_x, "dev": dev, "test_real": test, "test_synth": test_synth,
-                 "utility_real": train, "utility_synth": utility_synth, "stats": stats, "extra": extra}
-            result = score_draws(arm, seed, d, test, schema)
-            report = fidelity_report(test_x, test_synth[FEATURES], schema)
-            result["rare_category_recall"] = report["rare_category_recall"]
-            result["rare_category_count"] = report["rare_category_count"]
-            result["by_column"] = {c: {"coverage": report["categorical"][c]["coverage"],
-                                       "rare_recall": report["categorical"][c]["rare_category_recall"],
-                                       "tv": report["categorical"][c]["total_variation"]}
-                                   for c in ladder.CATEGORICAL}
-            result["correlation_mae"] = report["correlation_mae"]
-            result["still_broken_after_filter"] = stats.get("still_broken")
-            for key, rows in (("dev", dev), ("test_synth", test_synth), ("utility_synth", utility_synth)):
-                result[f"{key}_copies_of_train"] = exact_copy_count(rows, train)
-            result["generated_rows_checked"] = int(len(dev) + len(test_synth) + len(utility_synth))
-            result["test_unseen_category_share"] = unseen
-            result["environment"] = environment()
-            out.write_text(json.dumps(result, indent=2, default=float), encoding="utf-8")
-            print(f"DONE {arm} seed {seed}: RF {result['detection_auc_rf']:.4f} GB {result['detection_auc_gb']:.4f} "
-                  f"utility {result['utility_ratio']:.3f} coverage {result['coverage']}", flush=True)
+    # Workers split the (seed, arm) pairs of this one evaluation; each pair is seeded, so the split
+    # does not change any number. Worker 0 writes the lock; the others start once it exists.
+    pairs = [(seed, arm) for seed in seeds for arm in ARMS]
+    for index, (seed, arm) in enumerate(pairs):
+        out = test_dir / f"{arm}_seed{seed}.json"
+        if index % worker[1] != worker[0] or out.exists():
+            continue
+        stats, extra = {}, {}
+        if arm == "real_reference":
+            rng = np.random.default_rng(seed)
+            pool = reference.iloc[rng.permutation(len(reference))].reset_index(drop=True)
+            dev = pool.iloc[:len(validation)].reset_index(drop=True)
+            test_synth = pool.iloc[len(validation):len(validation) + len(test)].reset_index(drop=True)
+            utility_synth = test_synth.iloc[:len(train)]
+        else:
+            generator, extra = _generator(arm, seed, train, choices[str(seed)])
+            dev, test_synth, utility_synth = draw_three(generator, seed, train, validation, test, stats)
+        d = {"fit": train, "dev_real": val_x, "dev": dev, "test_real": test, "test_synth": test_synth,
+             "utility_real": train, "utility_synth": utility_synth, "stats": stats, "extra": extra}
+        result = score_draws(arm, seed, d, test, schema)
+        report = fidelity_report(test_x, test_synth[FEATURES], schema)
+        result["rare_category_recall"] = report["rare_category_recall"]
+        result["rare_category_count"] = report["rare_category_count"]
+        result["by_column"] = {c: {"coverage": report["categorical"][c]["coverage"],
+                                   "rare_recall": report["categorical"][c]["rare_category_recall"],
+                                   "tv": report["categorical"][c]["total_variation"]}
+                               for c in ladder.CATEGORICAL}
+        result["correlation_mae"] = report["correlation_mae"]
+        result["still_broken_after_filter"] = stats.get("still_broken")
+        for key, rows in (("dev", dev), ("test_synth", test_synth), ("utility_synth", utility_synth)):
+            result[f"{key}_copies_of_train"] = exact_copy_count(rows, train)
+        result["generated_rows_checked"] = int(len(dev) + len(test_synth) + len(utility_synth))
+        result["test_unseen_category_share"] = unseen
+        result["environment"] = environment()
+        out.write_text(json.dumps(result, indent=2, default=float), encoding="utf-8")
+        print(f"DONE {arm} seed {seed}: RF {result['detection_auc_rf']:.4f} GB {result['detection_auc_gb']:.4f} "
+              f"utility {result['utility_ratio']:.3f} coverage {result['coverage']}", flush=True)
 
 
 def main():
@@ -319,6 +323,7 @@ def main():
     parser.add_argument("command", choices=["train", "select", "evaluate"])
     parser.add_argument("--models", nargs="+", default=["5_rules", "7_ddpm", "8_ddpm_rules", "9_latent_rules"])
     parser.add_argument("--seeds", nargs="+", type=int, default=list(SEEDS))
+    parser.add_argument("--worker", default="0/1", help="i/n: this process scores every n-th (seed, arm) pair")
     args = parser.parse_args()
     torch.set_num_threads(int(os.environ.get("LADDER_THREADS", "1")))
     started = time.time()
@@ -327,7 +332,7 @@ def main():
     elif args.command == "select":
         run_select(args.seeds)
     else:
-        run_evaluate(args.seeds)
+        run_evaluate(args.seeds, tuple(int(x) for x in args.worker.split("/")))
     print(f"finished in {time.time() - started:.0f}s", flush=True)
 
 
